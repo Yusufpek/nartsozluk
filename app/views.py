@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Max, Count, Q, F
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 import random
@@ -33,6 +35,20 @@ class TitleView(View):
         self.context['entries'] = title_entries.order_by('created_at')
 
         return render(request, 'title_page.html', self.context)
+
+
+class FollowView(View):
+    context = {}
+
+    def get(self, request):
+        if (not request.user.is_authenticated):
+            return HttpResponseRedirect(reverse('app:index'))
+        follows = Author.objects.filter(follow=request.user.id)
+        print(follows)
+        entries = Entry.objects.filter(author__in=follows)
+        self.context['entries'] = entries.order_by('-created_at')
+
+        return render(request, 'home_page.html', self.context)
 
 
 class VotedView(View):
