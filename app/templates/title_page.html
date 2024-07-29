@@ -1,0 +1,49 @@
+{% extends "components/master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+
+<div class="d-flex flex-column pt-4 justify-content-center align-items-center">
+    <h4><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h4>
+    <div class="d-flex flex-row">
+        <h6 class='px-2'><a href="{% url 'app:most-voted' title.id %}" class='link-success'>Şükela</a></h6>
+        {% if request.user.is_authenticated %}
+            <h6 class='px-2'><a href="{% url 'app:title' title.id %}" class='link-secondary'>Ekle</a></h6>
+        {% endif %}
+    </div>
+</div>
+
+{% if entries %}
+<div class="p-5">
+    {% for entry in entries %}
+    <div class="card text-white bg-dark mb-3" style="max-width: 48rem;">
+        <div class="card-body">
+            <p class="card-text">{{entry.text}}</p>
+            <div class="card-footer d-flex justify-content-between text-muted">
+                <div>
+                    {{entry.created_at}}
+                    {% if entry.is_edited %}
+                    - {{entry.updated_at}}
+                    {% endif %}
+                </div>
+                <div>
+                    {% if entry.author != None %}
+                    <a href= "{% url 'app:profile' entry.author.id %}" class='link-secondary'>{{entry.author}}</a>
+                    {% else %}
+                        Deleted User
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div>
+    <h5> No entry :/</h5>
+</div>
+{% endif %}
+
+{% endblock %}

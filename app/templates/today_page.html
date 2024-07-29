@@ -1,0 +1,35 @@
+{% extends "components/master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="d-flex flex-column pt-2 pb-4 justify-content-center align-items-center">
+    <h3 class="">{% now 'D-M-Y' %}</h3>
+</div>
+<div class='d-flex flex-row p-2'>
+    <div class='col'>
+        {% if titles %}
+            <h4>Today's Titles</h4>
+             {% include 'components/titles.html' %}
+        {% else %}
+            <div>
+                <h5> No title :/</h5>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="vr"></div>
+    
+    <div class="px-1">
+        {% if entries %}
+            <h4 class="px-5">Today's Entries</h4>
+            {% include 'components/entries.html' %}
+            {% else %}
+            <div>
+                <h5> No entry :/</h5>
+            </div>
+        {% endif %}
+    </div>    
+    {% endblock %}
+</div>

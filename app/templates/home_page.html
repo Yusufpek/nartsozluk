@@ -1,0 +1,15 @@
+{% extends "components/master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+{% if entries %}
+    {% include 'components/entries.html' %}
+{% else %}
+<div>
+    <h5> No entry :/</h5>
+</div>
+{% endif %}
+
+{% endblock %}

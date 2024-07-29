@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}{% endblock %}</title>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+</head>
+<body>
+
+<div class="container">
+  <ul class="d-flex flex-row justify-content-between nav bg-secondary"> 
+    <div class=''>
+        <li class="nav-item">
+          <a class="nav-link link-light" href="{% url 'app:index' %}">nartSozluk</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link link-light" href="{% url 'app:today' %}">today</a>
+        </li>
+    </div>
+    <div>
+      {% if request.user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link link-light" href="{% url 'app:profile' request.user.id %}">profile</a>
+        </li>
+      {% endif %}  
+    </div>
+  </ul>
+
+  {% block content %}
+  {% endblock %}
+</div>
+</body>
+</html>

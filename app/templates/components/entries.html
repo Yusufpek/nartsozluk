@@ -1,0 +1,27 @@
+<div class="p-5">
+    {% for entry in entries %}
+    <div class="card text-white bg-dark mb-3" style="max-width: 48rem;">
+        <div class="card-body">
+            <h5 class="card-title">
+                <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
+            </h5>
+            <p class="card-text">{{entry.text}}</p>
+            <div class="card-footer d-flex justify-content-between text-muted">
+                <div>
+                    {{entry.created_at}}
+                    {% if entry.is_edited %}
+                    - {{entry.updated_at}}
+                    {% endif %}
+                </div>
+                <div>
+                    {% if entry.author != None %}
+                    <a href= "{% url 'app:profile' entry.author.id %}" class='link-secondary'>{{entry.author}}</a>
+                    {% else %}
+                        Deleted User
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
