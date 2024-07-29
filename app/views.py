@@ -51,6 +51,18 @@ class FollowView(View):
         return render(request, 'home_page.html', self.context)
 
 
+class FavView(View):
+    context = {}
+
+    def get(self, request):
+        if (not request.user.is_authenticated):
+            return HttpResponseRedirect(reverse('app:index'))
+        entries = Entry.objects.filter(authorsfavorites__author=request.user)
+        self.context['entries'] = entries.order_by('-created_at')
+
+        return render(request, 'home_page.html', self.context)
+
+
 class VotedView(View):
     context = {}
 
