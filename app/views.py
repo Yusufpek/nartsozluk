@@ -1,12 +1,12 @@
-from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
 from django.db.models import Max, Count, Q, F
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.views import View
 import random
 
 from .models import Title, Entry, Author
+from .forms import LoginForm, SignupForm
 
 
 # Create your views here.
@@ -42,7 +42,7 @@ class FollowView(View):
 
     def get(self, request):
         if (not request.user.is_authenticated):
-            return HttpResponseRedirect(reverse('app:index'))
+            return redirect('app:index')
         follows = Author.objects.filter(follow=request.user.id)
         print(follows)
         entries = Entry.objects.filter(author__in=follows)
@@ -56,7 +56,7 @@ class FavView(View):
 
     def get(self, request):
         if (not request.user.is_authenticated):
-            return HttpResponseRedirect(reverse('app:index'))
+            return redirect('app:index')
         entries = Entry.objects.filter(authorsfavorites__author=request.user)
         self.context['entries'] = entries.order_by('-created_at')
 
@@ -116,3 +116,54 @@ class ProfileView(View):
         self.context['titles'] = user_titles
 
         return render(request, 'profile_page.html', self.context)
+
+
+class SignupView(View):
+    form = SignupForm()
+
+    def post(self, request):
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            if (request.user.is_authenticated):
+                logout(request)
+            author = form.save(commit=False)
+            author.save()
+            user = authenticate(request,
+                                username=author.username,
+                                password=author.password)
+            if user:
+                login(request, user)
+            return redirect('app:index')
+        else:
+            form = SignupForm(request.POST)
+            return render(request, 'signup_page.html', {'form': form})
+
+    def get(self, request):
+        form = SignupForm()
+        return render(request, 'signup_page.html', {'form': form})
+
+
+class LoginView(View):
+    form = LoginForm()
+
+    def post(self, request):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)
+                return redirect('app:index')
+            else:
+                print("hata")
+
+    def get(self, request):
+        form = LoginForm()
+        return render(request, 'login_page.html', {'form': form})
+
+
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect('app:login')
