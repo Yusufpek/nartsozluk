@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Max, Count, Q, F
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.utils import timezone
 from django.views import View
 import random
@@ -156,7 +157,11 @@ class LoginView(View):
                 login(request, user)
                 return redirect('app:index')
             else:
-                print("hata")
+                message = 'login error, username or password is incorrect.'
+                messages.warning(request, message)
+                return render(request, 'login_page.html', {'form': form})
+        else:
+            return render(request, 'login_page.html', {'form': form})
 
     def get(self, request):
         form = LoginForm()
