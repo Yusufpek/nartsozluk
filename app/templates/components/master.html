@@ -17,6 +17,9 @@
         <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'app:today' %}">today</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link link-light" href="{% url 'app:latest' %}">latest</a>
+        </li>
         {% if request.user.is_authenticated %}
         <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'app:follow' %}">follow</a>

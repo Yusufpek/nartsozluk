@@ -7,6 +7,7 @@ urlpatterns = [
     # /
     path('', views.HomeView.as_view(), name="index"),
     path('today', views.TodayView.as_view(), name="today"),
+    path('latest', views.LatestView.as_view(), name="latest"),
     path('follow', views.FollowView.as_view(), name="follow"),
     path('fav', views.FavView.as_view(), name="fav"),
     path('<int:title_id>/title', views.TitleView.as_view(), name="title"),

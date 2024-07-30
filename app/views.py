@@ -92,6 +92,18 @@ class TodayView(View):
         return render(request, 'today_page.html', self.context)
 
 
+class LatestView(View):
+    context = {}
+
+    def get(self, request):
+        count = Count(
+            'entry',
+            filter=Q(created_at__day=timezone.now().day))
+        titles = Title.objects.annotate(todays_entries_count=count)
+        self.context['titles'] = titles.order_by('-todays_entries_count')[:25]
+        return render(request, 'latest_page.html', self.context)
+
+
 class ProfileView(View):
     context = {}
 
