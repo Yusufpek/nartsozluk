@@ -48,9 +48,9 @@ class AuthorsFavorites(models.Model):
 
 class FollowAuthor(models.Model):
     user = models.ForeignKey(Author, on_delete=models.CASCADE,
-                             related_name="user")
+                             related_name="following")
     follow = models.ForeignKey(Author, on_delete=models.CASCADE,
-                               related_name="follow")
+                               related_name="followers")
     follow_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

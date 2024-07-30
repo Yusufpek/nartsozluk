@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Max, Count, Q, F
+from django.db.models import Max, Count, Q, F, ExpressionWrapper, FloatField
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils import timezone
@@ -10,7 +10,7 @@ from .models import Title, Entry, Author, FollowAuthor
 from .forms import LoginForm, SignupForm
 
 
-# Create your views here.
+# user can choose random entry count max count is 50
 class HomeView(View):
     context = {}
 
@@ -82,6 +82,7 @@ class VotedView(View):
         return render(request, 'title_page.html', self.context)
 
 
+# pagination
 class TodayView(View):
     context = {}
 
@@ -94,6 +95,7 @@ class TodayView(View):
         return render(request, 'today_page.html', self.context)
 
 
+# pagination
 class LatestView(View):
     context = {}
 
@@ -110,7 +112,18 @@ class ProfileView(View):
     context = {}
 
     def get(self, request, author_id):
-        author = Author.objects.get(pk=author_id)
+        # distinct=True meaning is each unique row is only counted once.
+        author = Author.objects.annotate(
+            follower_count=Count('followers', distinct=True),
+            total_votes=Count('entry__vote', distinct=True),
+            up_votes=Count('entry__vote', filter=Q(entry__vote__is_up=True)),
+            ).annotate(
+                upvote_ratio=ExpressionWrapper(
+                    (F('up_votes') / F('total_votes') * 100),
+                    output_field=FloatField())).get(pk=author_id)
+        if author.total_votes == 0:
+            author.upvote_ratio = 0
+        print(author.follower_count, "followers")
         self.context['author'] = author
         user_entries = Entry.objects.filter(author=author)
         self.context['entries'] = user_entries.order_by('created_at')
@@ -206,5 +219,5 @@ class UnFollowUserView(View):
             return redirect('app:profile', follow_id)
         except Author.DoesNotExist:
             return redirect('app:index')
-        except FollowAuthor.DoesNotExist: 
+        except FollowAuthor.DoesNotExist:
             return redirect('app:profile', follow_id)
