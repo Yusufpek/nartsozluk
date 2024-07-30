@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.views import View
 import random
 
-from .models import Title, Entry, Author
+from .models import Title, Entry, Author, FollowAuthor
 from .forms import LoginForm, SignupForm
 
 
@@ -44,9 +44,10 @@ class FollowView(View):
     def get(self, request):
         if (not request.user.is_authenticated):
             return redirect('app:index')
-        follows = Author.objects.filter(follow=request.user.id)
+        follows = FollowAuthor.objects.filter(user=request.user)
+        author_ids = follows.values_list('follow_id', flat=True)
         print(follows)
-        entries = Entry.objects.filter(author__in=follows)
+        entries = Entry.objects.filter(author_id__in=author_ids)
         self.context['entries'] = entries.order_by('-created_at')
 
         return render(request, 'home_page.html', self.context)
@@ -115,7 +116,18 @@ class ProfileView(View):
         self.context['entries'] = user_entries.order_by('created_at')
         user_titles = Title.objects.filter(owner=author).order_by('created_at')
         self.context['titles'] = user_titles
-
+        follow = 0  # can follow
+        if (request.user == author):
+            follow = 1  # same person
+        else:
+            try:
+                followAuthor = FollowAuthor.objects.get(
+                    user=request.user, follow=author)
+                self.context['follow_date'] = followAuthor.follow_date
+                follow = 2  # already follower
+            except FollowAuthor.DoesNotExist:
+                follow = 0
+        self.context['follow'] = follow
         return render(request, 'profile_page.html', self.context)
 
 
@@ -172,3 +184,27 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('app:login')
+
+
+class FollowUserView(View):
+    def get(self, request, follow_id):
+        try:
+            follow = Author.objects.get(pk=follow_id)
+            FollowAuthor(user=request.user, follow=follow).save()
+            return redirect('app:profile', follow_id)
+        except Author.DoesNotExist:
+            return redirect('app:index')
+
+
+class UnFollowUserView(View):
+    def get(self, request, follow_id):
+        try:
+            follow = Author.objects.get(pk=follow_id)
+            follow_author = FollowAuthor.objects.get(
+                user=request.user, follow=follow)
+            follow_author.delete()
+            return redirect('app:profile', follow_id)
+        except Author.DoesNotExist:
+            return redirect('app:index')
+        except FollowAuthor.DoesNotExist: 
+            return redirect('app:profile', follow_id)
