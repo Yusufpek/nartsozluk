@@ -67,7 +67,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
   --purple: #6f42c1;
   --pink: #e83e8c;
   --red: #ec0c38;
-  --orange: #fd7e14;
+  --orange: #F37123;
   --yellow: #fa3a0e;
   --green: #2dce89;
   --teal: #00A9A2;
@@ -7333,7 +7333,7 @@ a.link {
 
 a.link:focus,
 a.link:hover {
-  color: #4d7cff; }
+  color: #F37123; }
 
 ul {
   padding: 0; }
@@ -7390,7 +7390,7 @@ sub {
   font-size: 1.8rem; }
   .heading-primary-title {
     font-size: 2.2rem;
-    color: #7571f9; }
+    color: #F37123; }
 
 .heading-primary-light {
   font-size: 1.8rem;
@@ -7565,7 +7565,7 @@ sub {
       margin: 0;
       color: #898989; }
     .footer .copyright a {
-      color: #7571f9; }
+      color: #F37123; }
 
 [data-sidebar-style="mini"] .nav-control, [data-layout="horizontal"] .nav-control {
   display: none; }
@@ -7598,7 +7598,10 @@ sub {
     .nav-header {
       width: 14.375rem; } }
   .nav-header .brand-logo {
-    z-index: 999; }
+    background-color: white;
+    align-items: center;
+    justify-content: center;
+  }
     .nav-header .brand-logo a {
       padding: 1.607rem 1.8125rem;
       display: block; }
@@ -7800,7 +7803,7 @@ sub {
     font-size: 1rem;
     color: #333; }
   .dropdown-content-heading i {
-    color: #7571f9; }
+    color: #F37123; }
 
 .dropdown-content-body ul {
   padding: 0 1.25rem;
@@ -7887,7 +7890,7 @@ sub {
   background-color: #CE2B23; }
 
 .dropdown-notfication li:nth-child(4) .avatar-icon {
-  background-color: #3375E1; }
+  background-color: #F37123; }
 
 .dropdown-notfication .avatar-icon {
   top: 0.9625rem;
@@ -8205,7 +8208,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
     .nk-sidebar .metismenu ul ul a {
       padding: 0.625rem 0.9375rem 0.625rem 3.75rem; }
     .nk-sidebar .metismenu .mega-menu ul.in li a:hover, .nk-sidebar .metismenu .mega-menu ul.in li a:focus, .nk-sidebar .metismenu .mega-menu ul.in li a.active {
-      color: #7571f9; }
+      color: #F37123; }
     .nk-sidebar .metismenu a {
       transition: all 0.4s ease-in-out; }
       .nk-sidebar .metismenu a:hover, .nk-sidebar .metismenu a:active, .nk-sidebar .metismenu a.active {
