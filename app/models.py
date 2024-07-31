@@ -2,17 +2,36 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator
 
+from .constants import COUNT_CHOICES
+
 
 # Create your models here.
 class Author(AbstractUser):
+    random_entry_count = models.CharField(
+        max_length=2, default='10', choices=COUNT_CHOICES)
+    title_entry_count = models.CharField(
+        max_length=2, default='10', choices=COUNT_CHOICES)
+
     def __str__(self):
         return self.username
+
+
+class Topic(models.Model):
+    text = models.CharField(max_length=50)
+    created_by = models.ForeignKey(
+        Author, null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text
 
 
 class Title(models.Model):
     text = models.CharField(max_length=50, validators=[MinLengthValidator(3)])
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Author, null=True, on_delete=models.SET_NULL)
+    topic = models.ForeignKey(
+        Topic, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.text
