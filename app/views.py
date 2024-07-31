@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Max, Count, Q, F, ExpressionWrapper, FloatField
+from django.db.models import Max, Count, Q, F, ExpressionWrapper, Value
+from django.db.models import FloatField, Case, When, BooleanField
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.utils import timezone
 from django.views import View
@@ -16,11 +18,17 @@ class HomeView(View):
 
     def get(self, request):
         HOME_ENTRY_COUNT = 10
+        if request.user.is_authenticated:
+            HOME_ENTRY_COUNT = request.user.random_entry_count
         pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
         if (pk_max):
             count = min(pk_max, HOME_ENTRY_COUNT)  # limit with pk and count
             random_list = random.sample(range(1, pk_max+1), count)
-            entries = Entry.objects.filter(pk__in=random_list).order_by('?')
+            entries = Entry.objects.annotate(
+                is_fav=Case(When(
+                    authorsfavorites__author=request.user, then=Value(True)),
+                    default=Value(False), output_field=BooleanField())
+                ).filter(pk__in=random_list).order_by('?')
             self.context["entries"] = entries
 
         return render(request, 'home_page.html', self.context)
@@ -30,10 +38,25 @@ class TitleView(View):
     context = {}
 
     def get(self, request, title_id):
+        ENTRY_COUNT = 10
+        if request.user.is_authenticated:
+            ENTRY_COUNT = request.user.title_entry_count
+
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
-        title_entries = Entry.objects.filter(title=title)
-        self.context['entries'] = title_entries.order_by('created_at')
+        title_entries = Entry.objects.annotate(
+            is_fav=Case(
+                When(authorsfavorites__author=request.user, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()),
+            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
+            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
+        ).filter(
+            title=title).order_by('created_at')
+        paginator = Paginator(title_entries, ENTRY_COUNT)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        self.context['page_obj'] = page_obj
 
         return render(request, 'title_page.html', self.context)
 
@@ -87,11 +110,19 @@ class TodayView(View):
     context = {}
 
     def get(self, request):
+        ENTRY_COUNT = 10
+        if request.user.is_authenticated:
+            ENTRY_COUNT = request.user.title_entry_count
+
         titles = Title.objects.filter(created_at__day=timezone.now().day)
         self.context['titles'] = titles.order_by('-created_at')
-        entries = Entry.objects.filter(created_at__day=timezone.now().day)
-        self.context['entries'] = entries.order_by('-created_at')
+        entries = Entry.objects.filter(
+            created_at__day=timezone.now().day).order_by('-created_at')
 
+        paginator = Paginator(entries, ENTRY_COUNT)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        self.context['page_obj'] = page_obj
         return render(request, 'today_page.html', self.context)
 
 
