@@ -97,6 +97,11 @@
                 {% if request.user.is_authenticated %}
                 <div class="header-right">
                     <ul class="clearfix">
+                        <li class="icons dropdown">
+                            <a href="{% url 'app:new-title' %}">
+                            <i class="bi bi-plus-lg"></i>
+                            </a>
+                        </li>
                         <li class="icons dropdown"><a href="javascript:void(0)" data-toggle="dropdown">
                                 <i class="mdi mdi-email-outline"></i>
                                 <span class="badge badge-pill gradient-1">3</span>
@@ -201,12 +206,18 @@
                                 <div class="dropdown-content-body">
                                     <ul>
                                         <li>
-                                            <a href="{% url 'app:profile' request.user.id %}"><i class="icon-user"></i> <span>Profile</span></a>
+                                            <a a class="nav-link link-dark" href="{% url 'app:profile' request.user.id %}">
+                                                <i class="icon-user"></i> <span>Profile</span>
+                                            </a>
                                         </li>
                                         
                                         <hr class="my-2">
 
-                                        <li><a href="{% url 'app:logout' %}" class='link-dark'><i class="icon-key"></i> <span>Logout</span></a></li>
+                                        <li>
+                                            <a a class="nav-link link-dark" href="{% url 'app:logout' %}" class='link-dark'>
+                                                <i class="icon-key"></i> <span>Logout</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -228,29 +239,57 @@
             <div class="nk-nav-scroll">
                 <ul class="metismenu" id="menu">
                     <li class="">
-                        <a class="nav-link link-light" href="{% url 'app:latest' %}">latest</a>
+                        <a class="nav-link link-light" href="{% url 'app:latest' %}">
+                            <i class="bi bi-archive"></i>
+                            <span class="nav-text">latest</span>
+                        </a>
                     </li>
                     <li>
-                        <a class="nav-link link-light" href="{% url 'app:today' %}">today</a></li>
+                        <a class="nav-link link-light" href="{% url 'app:today' %}">
+                            <i class="bi bi-calendar-range"></i>
+                            <span class="nav-text">today</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link link-light" href="{% url 'app:login' %}">
+                            <i class="icon-badge menu-icon"></i>
+                            <span class="nav-text">last day most voteds</span>
+                        </a>
                     </li>
                     <hr/>
                     
                     {% if request.user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:follow' %}">follow</a>
+                            <a class="nav-link link-light" href="{% url 'app:follow' %}">                            
+                                <i class="bi bi-person-lines-fill"></i>
+                                <span class="nav-text">follow</span>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:fav' %}">favorites</a>
+                            <a class="nav-link link-light" href="{% url 'app:fav' %}">
+                                <i class="bi bi-bookmark-heart"></i>
+                                <span class="nav-text">favorites</span>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:logout' %}">logout</a>
+                            <a class="nav-link link-light" href="{% url 'app:logout' %}">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="nav-text">logout</span>
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:login' %}">login</a>
+                            <a class="nav-link link-light" href="{% url 'app:login' %}">
+                                <i class="bi bi-box-arrow-in-left"></i>
+                                <span class="nav-text">login</span>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:signup' %}">sign up</a>
+                            <a class="nav-link link-light" href="{% url 'app:signup' %}">
+                                <i class="bi bi-person-circle"></i>
+                                <span class="nav-text">sign up</span>
+                            </a>
                         </li>
                     {% endif %}
                     
@@ -264,6 +303,7 @@
         <!--**********************************
             Content body start
         ***********************************-->
+    <div class="content-body">
         {% block content %}
 
         {% endblock %}
