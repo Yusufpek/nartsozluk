@@ -36,7 +36,7 @@ class HomeView(View):
                 entries = Entry.objects.filter(
                     pk__in=random_list).order_by('?')
             self.context["entries"] = entries
-
+        self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
 
 
@@ -63,7 +63,7 @@ class TitleView(View):
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
-
+        self.context['show_title'] = False
         return render(request, 'title_page.html', self.context)
 
 
@@ -78,6 +78,7 @@ class FollowView(View):
         print(follows)
         entries = Entry.objects.filter(author_id__in=author_ids)
         self.context['entries'] = entries.order_by('-created_at')
+        self.context['show_title'] = True
 
         return render(request, 'home_page.html', self.context)
 
@@ -92,6 +93,7 @@ class FavView(View):
             authorsfavorites__author=request.user
             ).annotate(is_fav=Value(True, output_field=BooleanField()))
         self.context['entries'] = entries.order_by('-created_at')
+        self.context['show_title'] = True
 
         return render(request, 'home_page.html', self.context)
 
@@ -180,6 +182,7 @@ class ProfileView(View):
             except FollowAuthor.DoesNotExist:
                 follow = 0
         self.context['follow'] = follow
+        self.context['title'] = True
         return render(request, 'profile_page.html', self.context)
 
 

@@ -18,7 +18,7 @@
 
         <span class="step-links">
             {% if page_obj.object_list %}
-                {% include 'components/entries_without_title.html' %}
+                {% include 'components/entries.html' %}
                 <div class='px-5'>
                 <div class='d-flex flex-row justify-content-end align-items-center'>
                     {% if page_obj.has_previous %}
@@ -35,11 +35,7 @@
                         <a class="btn btn-warning mx-1" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
                     {% endif %}
                 </div>
-                </div>
-            {% else %}
-                <div>
-                    <h5> No entry :/</h5>
-                </div>
+                </div>                
             {% endif %}
         </span>
 </div>

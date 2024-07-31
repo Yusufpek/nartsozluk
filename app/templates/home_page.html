@@ -4,13 +4,7 @@
 
 {% block content %}
 <div class='d-flex align-items-center justify-content-center'>
-    {% if entries %}
         {% include 'components/entries.html' %}
-    {% else %}
-    <div>
-        <h5> No entry :/</h5>
-    </div>
-    {% endif %}
 </div>
 
 {% endblock %}
