@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Title, Entry, Author, Vote
+from .models import Title, Entry, Author, Vote, Topic
 
 # Register your models here.
 
@@ -27,3 +27,4 @@ admin.site.register(Title, TitleAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(Author)
 admin.site.register(Vote)
+admin.site.register(Topic)
