@@ -3,12 +3,13 @@ from django.db.models import Max, Count, Q, F, ExpressionWrapper, Value
 from django.db.models import FloatField, Case, When, BooleanField
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
 from django.views import View
 import random
 
-from .models import Title, Entry, Author, FollowAuthor
+from .models import Title, Entry, Author, FollowAuthor, Vote, AuthorsFavorites
 from .forms import LoginForm, SignupForm
 
 
@@ -82,7 +83,9 @@ class FavView(View):
     def get(self, request):
         if (not request.user.is_authenticated):
             return redirect('app:index')
-        entries = Entry.objects.filter(authorsfavorites__author=request.user)
+        entries = Entry.objects.filter(
+            authorsfavorites__author=request.user
+            ).annotate(is_fav=Value(True, output_field=BooleanField()))
         self.context['entries'] = entries.order_by('-created_at')
 
         return render(request, 'home_page.html', self.context)
@@ -252,3 +255,51 @@ class UnFollowUserView(View):
             return redirect('app:index')
         except FollowAuthor.DoesNotExist:
             return redirect('app:profile', follow_id)
+
+
+class VoteView(View):
+    def post(self, request):
+        entry_id = request.POST.get('entry_id')
+        vote_is_up = request.POST.get('is_up') == '1'
+        vote = Vote.objects.filter(entry_id=entry_id, voter=request.user)
+        vote = vote.first()
+        if vote:
+            if (not vote.is_up) and vote_is_up:
+                vote.is_up = True
+                vote.save()
+            elif vote.is_up and (not vote_is_up):
+                vote.is_up = False
+                vote.save()
+        else:
+            vote = Vote(
+                entry_id=entry_id, voter=request.user, is_up=vote_is_up)
+        vote.save()
+        up_votes_count = Vote.objects.filter(
+            entry_id=entry_id, is_up=True).count()
+        down_votes_count = Vote.objects.filter(
+            entry_id=entry_id, is_up=False).count()
+
+        return JsonResponse({
+            'success': True,
+            'up_votes_count': up_votes_count,
+            'down_votes_count': down_votes_count,
+        })
+
+
+class FavEntryView(View):
+    def post(self, request):
+        entry_id = request.POST.get('entry_id')
+        user = request.user
+        try:
+            favorite = AuthorsFavorites.objects.filter(
+                entry_id=entry_id, author=user).first()
+            if favorite:
+                favorite.delete()
+                is_favorite = False
+            else:
+                AuthorsFavorites(entry_id=entry_id, author=user).save()
+                is_favorite = True
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+        return JsonResponse({'success': True, 'is_favorite': is_favorite})

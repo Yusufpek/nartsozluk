@@ -10,6 +10,8 @@ urlpatterns = [
     path('latest', views.LatestView.as_view(), name="latest"),
     path('follow', views.FollowView.as_view(), name="follow"),
     path('fav', views.FavView.as_view(), name="fav"),
+    path('fav_entry', views.FavEntryView.as_view(), name="fav-entry"),
+    path('vote', views.VoteView.as_view(), name="vote"),
     path('<int:follow_id>/follow',
          views.FollowUserView.as_view(), name="follow-user"),
     path('<int:follow_id>/unfollow',

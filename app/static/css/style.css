@@ -9508,7 +9508,8 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
   .media-reply__link i, .media-reply__link span {
     color: #AFB4C5; }
     .media-reply__link i:hover, .media-reply__link span:hover {
-      color: #FF4D87; }
+      color: #00FF00;
+    }
 
 .login-form__title {
   color: #515E75;

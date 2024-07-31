@@ -3,7 +3,6 @@
 {% load static %}
 
 {% block content %}
-<div class="content-body">
 
     <div class="d-flex flex-row p-4 justify-content-between align-items-center">
         <div class="user-img position-relative">
@@ -78,22 +77,9 @@
 
 {% if entries %}
 <h4>{{author.username}}'s Entries</h4>
-<div class="p-5">
-    {% for entry in entries %}
-    <div class="card text-white bg-dark mb-3" style="max-width: 48rem;">
-        <div class="card-body">
-            <h5 class="card-title">{{entry.title}}</h5>
-            <p class="card-text">{{entry.text}}</p>
-            <div class="card-footer text-muted">
-                    {{entry.created_at}}
-                    {% if entry.is_edited %}
-                    - {{entry.updated_at}}
-                    {% endif %}
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
+
+{% include 'components/entries.html' %}
+
 {% else %}
 <div>
     <h5> No entry :/</h5>

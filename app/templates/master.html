@@ -24,6 +24,8 @@
     <link href="" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     {% load bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
@@ -206,8 +208,17 @@
                                 <div class="dropdown-content-body">
                                     <ul>
                                         <li>
+                                            <p>hello, {{request.user}}</p>
+                                        </li>
+                                        <li>
                                             <a a class="nav-link link-dark" href="{% url 'app:profile' request.user.id %}">
                                                 <i class="icon-user"></i> <span>Profile</span>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a a class="nav-link link-dark" href="{% url 'app:profile' request.user.id %}">
+                                                <i class="icon-user"></i> <span>Settings</span>
                                             </a>
                                         </li>
                                         
@@ -339,6 +350,7 @@
     <!-- ChartistJS -->
     <script src="{% static 'plugins/chartist/js/chartist.min.js' %}"></script>
     <script src="{% static 'plugins/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
 
