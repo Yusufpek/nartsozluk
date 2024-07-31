@@ -10,7 +10,7 @@ from django.views import View
 import random
 
 from .models import Title, Entry, Author, FollowAuthor, Vote, AuthorsFavorites
-from .forms import LoginForm, SignupForm
+from .forms import LoginForm, SignupForm, TitleForm
 
 
 # user can choose random entry count max count is 50
@@ -308,3 +308,28 @@ class FavEntryView(View):
             return JsonResponse({'success': False, 'error': str(e)})
 
         return JsonResponse({'success': True, 'is_favorite': is_favorite})
+
+
+class NewTitleView(View):
+    form = TitleForm()
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+
+        form = TitleForm(request.POST)
+        if form.is_valid():
+            text = form.cleaned_data['text']
+            topic = form.cleaned_data['topic']
+            entry_text = form.cleaned_data['entry_text']
+            title = Title(text=text, topic=topic, owner=request.user)
+            title.save()
+            entry = Entry(text=entry_text, author=request.user, title=title)
+            entry.save()
+            return redirect('app:index')
+        else:
+            return render(request, 'new_title_page.html', {'form': form})
+
+    def get(self, request):
+        form = TitleForm()
+        return render(request, 'new_title_page.html', {'form': form})

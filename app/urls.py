@@ -9,6 +9,7 @@ urlpatterns = [
     path('today', views.TodayView.as_view(), name="today"),
     path('latest', views.LatestView.as_view(), name="latest"),
     path('follow', views.FollowView.as_view(), name="follow"),
+    path('new-title', views.NewTitleView.as_view(), name="new-title"),
     path('fav', views.FavView.as_view(), name="fav"),
     path('fav_entry', views.FavEntryView.as_view(), name="fav-entry"),
     path('vote', views.VoteView.as_view(), name="vote"),

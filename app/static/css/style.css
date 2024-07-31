@@ -9527,6 +9527,11 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
     padding: 15px 40px;
     background: #F37123;
     font-weight: 700; }
+  .login-form__btn.new-title {
+      background: #F37123;
+      color: white;
+      font-weight: 400;
+      justify-content: end; }
 
 .login-form__intro p, .login-form__intro h4 {
   margin-bottom: 0;
