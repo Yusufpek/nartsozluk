@@ -94,13 +94,13 @@
                     {% else %}
                         Deleted User
                     {% endif %}
-                    <small class="text-muted ml-3">
-                        {{entry.created_at|date:"M d, Y - h:m" }}
-                        {% if entry.is_edited %}
-                        ~ {{entry.updated_at|date:"M d, Y - h:m" }}
-                        {% endif %}
-                    </small>
                 </h6>
+                <small class="text-muted ml-3">
+                    {{entry.created_at|date:"M d, Y - h:m" }}
+                    {% if entry.is_edited %}
+                    ~ {{entry.updated_at|date:"M d, Y - h:m" }}
+                    {% endif %}
+                </small>
                 {% if request.user.is_authenticated %}
                     <div class="media-reply__link">
                         <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.id }}" data-up="1"  style="color: initial;">
