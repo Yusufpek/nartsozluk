@@ -133,7 +133,30 @@ class TodayView(View):
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
+        self.context['entries'] = entries
+        self.context['show_title'] = True
         return render(request, 'today_page.html', self.context)
+
+
+class LDMVViews(View):
+    context = {}
+
+    def get(self, request):
+        LDMV_COUNT = 5
+        yesterday = (timezone.now() - timezone.timedelta(days=1)).day
+        entries = Entry.objects.filter(created_at__day=yesterday).annotate(
+            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
+            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
+            fav_count=Count('authorsfavorites'),
+        )
+        entries = entries.annotate(
+            vote_point=(
+                (F('up_votes_count') * 5) +
+                (F('down_votes_count') * -1) +
+                (F('fav_count') * 2)))
+        print(entries)
+        self.context['entries'] = entries.order_by('-vote_point')[:LDMV_COUNT]
+        return render(request, 'home_page.html', self.context)
 
 
 # pagination
