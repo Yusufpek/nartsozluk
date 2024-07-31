@@ -25,11 +25,16 @@ class HomeView(View):
         if (pk_max):
             count = min(pk_max, HOME_ENTRY_COUNT)  # limit with pk and count
             random_list = random.sample(range(1, pk_max+1), count)
-            entries = Entry.objects.annotate(
-                is_fav=Case(When(
-                    authorsfavorites__author=request.user, then=Value(True)),
-                    default=Value(False), output_field=BooleanField())
-                ).filter(pk__in=random_list).order_by('?')
+            if request.user.is_authenticated:
+                entries = Entry.objects.annotate(
+                    is_fav=Case(When(
+                        authorsfavorites__author=request.user,
+                        then=Value(True)),
+                        default=Value(False), output_field=BooleanField())
+                    ).filter(pk__in=random_list).order_by('?')
+            else:
+                entries = Entry.objects.filter(
+                    pk__in=random_list).order_by('?')
             self.context["entries"] = entries
 
         return render(request, 'home_page.html', self.context)
