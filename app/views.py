@@ -93,7 +93,7 @@ class FollowView(View):
                 output_field=BooleanField()))
         self.context['entries'] = entries.order_by('-created_at')
         self.context['show_title'] = True
-        
+
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             html = render_to_string(
                 'components/entries.html', self.context, request=request)
@@ -230,7 +230,7 @@ class ProfileView(View):
             up_votes=Count('entry__vote', filter=Q(entry__vote__is_up=True)),
             ).annotate(
                 upvote_ratio=ExpressionWrapper(
-                    (F('up_votes') / F('total_votes') * 100),
+                    (F('up_votes') * 100 / F('total_votes')),
                     output_field=FloatField())).get(pk=author_id)
         if author.total_votes == 0:
             author.upvote_ratio = 0
@@ -251,7 +251,7 @@ class ProfileView(View):
             except FollowAuthor.DoesNotExist:
                 follow = 0
         self.context['follow'] = follow
-        self.context['title'] = True
+        self.context['show_title'] = True
         return render(request, 'profile_page.html', self.context)
 
 
