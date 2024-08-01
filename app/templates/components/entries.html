@@ -84,11 +84,11 @@
     {% for entry in entries %}
     <div class="card">
         <div class="card-body">
+            {% if show_title %}
             <h4 class='card-title'>
-                {% if show_title %}
                 <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
-                {% endif %}
             </h4>
+            {% endif %}
             <p>{{entry.text}}</p>
             <hr/>
             <div class="d-sm-flex justify-content-between mb-2">
@@ -130,11 +130,11 @@
 {% for entry in page_obj.object_list %}
 <div class="card">
     <div class="card-body">
+        {% if show_title %}
         <h4 class='card-title'>
-            {% if show_title %}
             <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
-            {% endif %}
         </h4>
+        {% endif %}
         <p>{{entry.text}}</p>
         <hr/>
         <div class="d-sm-flex justify-content-between mb-2">
