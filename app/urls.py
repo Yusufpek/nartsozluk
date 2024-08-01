@@ -28,4 +28,5 @@ urlpatterns = [
          views.OrderView.as_view(), name="order"),
     path('<int:author_id>/profile',
          views.ProfileView.as_view(), name="profile"),
+    path('<int:topic_id>/topic', views.TopicView.as_view(), name='topic'),
 ]

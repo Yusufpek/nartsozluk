@@ -6,10 +6,13 @@
 
 
 <div class="d-flex flex-column pt-4 justify-content-center align-items-center">
-    <h3><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h3>
+    <h2><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h2>
+    {% if title.topic %}
+        <h6 class='mt-2'><a href="{% url 'app:topic' title.topic.id %}" class='link-warning'>{{title.topic}}</a></h6>
+    {% endif %}
     <div class="d-flex flex-row align-items-center">
         {% if request.user.is_authenticated %}
-            <h6 class='mx-2 my-4'><a href="{% url 'app:title' title.id %}" class='link-secondary'>Ekle</a></h6>
+            <h6 class='mx-2 my-2'><a href="{% url 'app:title' title.id %}" class='link-secondary'>Ekle</a></h6>
         {% endif %}
         <div class="btn-group">
             <button id="btnGroupDrop1" type="button" class="btn link-secondary dropdown-toggle" data-toggle="dropdown">

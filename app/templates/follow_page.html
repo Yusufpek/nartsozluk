@@ -1,0 +1,52 @@
+{% extends "master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<script>
+    $(document).ready(function() {
+        $('.follow-link').click(function(event) {
+            event.preventDefault();
+            const query = $(this).attr('id') === 'follow-entries' ? 1 : 2;
+            console.log(query)
+            $.ajax({
+                url: "{% url 'app:follow' %}",
+                method: 'GET',
+                data: {'query': query},
+                success: function(response) {
+                    // update entries
+                    $('#entries-container').html(response.html);
+                    // reset colors
+                    $('.follow-link').removeClass('link-warning').removeClass('link-secondary');
+                    if (query === 1) {
+                        $('#follow-entries').addClass('link-warning');
+                        $('#follow-favs').addClass('link-secondary');
+                    } else {
+                        $('#follow-favs').addClass('link-warning');
+                        $('#follow-entries').addClass('link-secondary');
+                    }
+                },
+                error: function(response) {
+                    alert('Error fetching entries.');
+                }
+            });
+        });
+    });
+</script>
+
+
+<div class='d-flex flex-row justify-content-around align-items-center'>
+    <h5><a href='#' id="follow-entries" class='follow-link link-warning'>Follows Entries</a></h5>
+    <h5><a href='#' id="follow-favs"  class='follow-link link-secondary'>Follows Favs</a></h5>
+</div>
+
+<hr/>
+
+<div class='d-flex align-items-center justify-content-center'>
+    <div id="entries-container">
+        {% include 'components/entries.html' %}
+    </div>
+</div>
+
+{% endblock %}

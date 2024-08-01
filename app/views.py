@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Max, Count, Q, F, ExpressionWrapper, Value
 from django.db.models import FloatField, Case, When, BooleanField
+from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -75,14 +76,32 @@ class FollowView(View):
     def get(self, request):
         if (not request.user.is_authenticated):
             return redirect('app:index')
+
         follows = FollowAuthor.objects.filter(user=request.user)
         author_ids = follows.values_list('follow_id', flat=True)
-        print(follows)
-        entries = Entry.objects.filter(author_id__in=author_ids)
+        query = int(request.GET.get('query', 1))
+
+        if (query == 1):
+            entries = Entry.objects.filter(author_id__in=author_ids)
+        else:
+            entries = Entry.objects.filter(
+                authorsfavorites__author__in=author_ids)
+            print(entries)
+
+        entries = entries.annotate(is_fav=Case(
+                When(authorsfavorites__author=request.user, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()))
         self.context['entries'] = entries.order_by('-created_at')
         self.context['show_title'] = True
-
-        return render(request, 'home_page.html', self.context)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            print("sjsjsj")
+            html = render_to_string(
+                'components/entries.html', self.context, request=request)
+            return JsonResponse({'html': html})
+        else:
+            return render(request, 'follow_page.html', self.context)
 
 
 class FavView(View):
@@ -187,6 +206,7 @@ class LDMVViews(View):
                 (F('fav_count') * 2)))
         print(entries)
         self.context['entries'] = entries.order_by('-vote_point')[:LDMV_COUNT]
+        self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
 
 
@@ -390,3 +410,13 @@ class NewTitleView(View):
     def get(self, request):
         form = TitleForm()
         return render(request, 'new_title_page.html', {'form': form})
+
+
+class TopicView(View):
+    context = {}
+
+    def get(self, request, topic_id):
+        titles = Title.objects.filter(topic_id=topic_id)
+        print(titles)
+        self.context['titles'] = titles
+        return render(request, 'latest_page.html', self.context)
