@@ -52,8 +52,10 @@ class TitleView(View):
 
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
-        title_entries = Entry.objects.annotate(
-            is_fav=Case(
+        title_entries = Entry.objects.filter(title=title)
+        if request.user.is_authenticated:
+            title_entries = title_entries.annotate(
+                is_fav=Case(
                     When(authorsfavorites__author=request.user,
                          then=Value(True)),
                     default=Value(False),
