@@ -2,6 +2,8 @@
     <script>
         $(document).ready(function() {
             $('.vote-button').click(function() {
+                const showTitle = {{ show_title|yesno:"true,false" }};
+
                 const entryId = $(this).data('entry-id');
                 const isUp = $(this).data('up');
                 const button = $(this); 
@@ -17,8 +19,13 @@
                     success: function(response) {
                         if (response.success) {
                             console.log("success")
-                            $(`[data-entry-id="${entryId}"].vote-button[data-up="1"]`).find('i').text(response.up_votes_count);
-                            $(`[data-entry-id="${entryId}"].vote-button[data-up="0"]`).find('i').text(response.down_votes_count);
+                            if(!showTitle){
+                                $(`[data-entry-id="${entryId}"].vote-button[data-up="1"]`).find('i').text(response.up_votes_count);
+                                $(`[data-entry-id="${entryId}"].vote-button[data-up="0"]`).find('i').text(response.down_votes_count);
+                                console.log('no title area')
+                            }else{
+                                console.log('title area')
+                            }
 
                             $('.vote-button i').css({'color': ''});
 
