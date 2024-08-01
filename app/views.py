@@ -86,7 +86,6 @@ class FollowView(View):
         else:
             entries = Entry.objects.filter(
                 authorsfavorites__author__in=author_ids)
-            print(entries)
 
         entries = entries.annotate(is_fav=Case(
                 When(authorsfavorites__author=request.user, then=Value(True)),
@@ -96,7 +95,6 @@ class FollowView(View):
         self.context['show_title'] = True
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            print("sjsjsj")
             html = render_to_string(
                 'components/entries.html', self.context, request=request)
             return JsonResponse({'html': html})
@@ -123,7 +121,6 @@ class OrderView(View):
     context = {}
 
     def get(self, request, title_id, query):
-        print(title_id, query)
         ENTRY_COUNT = 10
         if request.user.is_authenticated:
             ENTRY_COUNT = request.user.title_entry_count
@@ -204,7 +201,6 @@ class LDMVViews(View):
                 (F('up_votes_count') * 5) +
                 (F('down_votes_count') * -1) +
                 (F('fav_count') * 2)))
-        print(entries)
         self.context['entries'] = entries.order_by('-vote_point')[:LDMV_COUNT]
         self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
@@ -238,7 +234,6 @@ class ProfileView(View):
                     output_field=FloatField())).get(pk=author_id)
         if author.total_votes == 0:
             author.upvote_ratio = 0
-        print(author.follower_count, "followers")
         self.context['author'] = author
         user_entries = Entry.objects.filter(author=author)
         self.context['entries'] = user_entries.order_by('created_at')
@@ -417,6 +412,5 @@ class TopicView(View):
 
     def get(self, request, topic_id):
         titles = Title.objects.filter(topic_id=topic_id)
-        print(titles)
         self.context['titles'] = titles
         return render(request, 'latest_page.html', self.context)
