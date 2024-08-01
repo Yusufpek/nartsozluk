@@ -96,7 +96,7 @@
                 <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
             </h4>
             {% endif %}
-            <p>{{entry.text}}</p>
+            {{entry.content|safe}}
             <hr/>
             <div class="d-sm-flex justify-content-between mb-2">
                 <h6 class="mb-sm-0">
@@ -142,7 +142,7 @@
             <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
         </h4>
         {% endif %}
-        <p>{{entry.text}}</p>
+        {{entry.content|safe}}
         <hr/>
         <div class="d-sm-flex justify-content-between mb-2">
             <h6 class="mb-sm-0">

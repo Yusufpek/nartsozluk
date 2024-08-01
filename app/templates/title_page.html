@@ -12,7 +12,7 @@
     {% endif %}
     <div class="d-flex flex-row align-items-center">
         {% if request.user.is_authenticated %}
-            <h6 class='mx-2 my-2'><a href="{% url 'app:title' title.id %}" class='link-secondary'>Ekle</a></h6>
+            <h6 class='mx-2 my-2'><a href="{% url 'app:new-entry' title.id %}" class='link-secondary'>Ekle</a></h6>
         {% endif %}
         <div class="btn-group">
             <button id="btnGroupDrop1" type="button" class="btn link-secondary dropdown-toggle" data-toggle="dropdown">

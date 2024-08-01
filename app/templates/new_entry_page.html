@@ -1,7 +1,9 @@
 {% extends "master.html" %}
 
-{% load crispy_forms_tags %} 
 {% load static %}
+
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
 
 {% block content %}
 
@@ -12,12 +14,12 @@
                 <div class="form-input-content">
                     <div class="card login-form mb-0">
                         <div class="card-body pt-5">
-                            <h5>add new title</h5>
+                            <h5>add new entryo to {{title}}</h5>
                             <form class="mt-5 mb-5 login-input" method="POST">
                                 {% csrf_token %}
                                 {{ form.media }}
-                                {{ form|crispy }}
-                                <button class="btn login-form__btn new-title">add title</button>
+                                {{ form }}
+                                <button class="btn login-form__btn new-title">add entry</button>
                             </form>
                             {% if messages %}
                                 <ul class="messages">

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'bootstrap5',
     'crispy_forms',
     'crispy_bootstrap4',
+    'django_ckeditor_5',
     'app'
 ]
 
@@ -124,6 +125,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -131,3 +136,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'app.Author'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# CKEditor Settings
+CKEDITOR_BASEPATH = "/static/django_ckeditor_5/"
+CKEDITOR_5_CONFIGS = {
+  'default': {
+      'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                  'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
+      'language': 'en',
+  },
+}

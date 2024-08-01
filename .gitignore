@@ -138,3 +138,5 @@ GitHub.sublime-settings
 .history
 
 000*.py
+
+static/

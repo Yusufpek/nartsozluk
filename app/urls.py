@@ -10,6 +10,8 @@ urlpatterns = [
     path('latest', views.LatestView.as_view(), name="latest"),
     path('follow', views.FollowView.as_view(), name="follow"),
     path('new-title', views.NewTitleView.as_view(), name="new-title"),
+    path('<int:title_id>/new-entry',
+         views.NewEntryView.as_view(), name="new-entry"),
     path('fav', views.FavView.as_view(), name="fav"),
     path('ldmv', views.LDMVViews.as_view(), name="ldmv"),
     path('fav_entry', views.FavEntryView.as_view(), name="fav-entry"),

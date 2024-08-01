@@ -11,14 +11,14 @@ class TitleAdmin(admin.ModelAdmin):
 
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ["text", "title", "author"]
+    list_display = ["content", "title", "author"]
     fieldsets = [
         (
             "Informations", {"fields": [
                 "title",
                 "author"]},
         ),
-        ("Text", {"fields": ["text"]}),
+        ("Text", {"fields": ["content"]}),
     ]
     list_filter = ["created_at", "updated_at"]
 

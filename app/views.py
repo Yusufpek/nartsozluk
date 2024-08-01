@@ -11,7 +11,7 @@ from django.views import View
 import random
 
 from .models import Title, Entry, Author, FollowAuthor, Vote, AuthorsFavorites
-from .forms import LoginForm, SignupForm, TitleForm
+from .forms import LoginForm, SignupForm, TitleForm, EntryForm
 from .constants import ORDER_CHOICES
 
 
@@ -54,13 +54,14 @@ class TitleView(View):
         self.context['title'] = title
         title_entries = Entry.objects.annotate(
             is_fav=Case(
-                When(authorsfavorites__author=request.user, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()),
-            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
-            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
-        ).filter(
-            title=title).order_by('created_at')
+                    When(authorsfavorites__author=request.user,
+                         then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField()),
+                up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
+                down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
+            )
+        title_entries = title_entries.order_by('created_at')
         paginator = Paginator(title_entries, ENTRY_COUNT)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
@@ -393,10 +394,11 @@ class NewTitleView(View):
         if form.is_valid():
             text = form.cleaned_data['text']
             topic = form.cleaned_data['topic']
-            entry_text = form.cleaned_data['entry_text']
+            entry_content = form.cleaned_data['entry_content']
             title = Title(text=text, topic=topic, owner=request.user)
             title.save()
-            entry = Entry(text=entry_text, author=request.user, title=title)
+            entry = Entry(
+                content=entry_content, author=request.user, title=title)
             entry.save()
             return redirect('app:index')
         else:
@@ -414,3 +416,31 @@ class TopicView(View):
         titles = Title.objects.filter(topic_id=topic_id)
         self.context['titles'] = titles
         return render(request, 'latest_page.html', self.context)
+
+
+class NewEntryView(View):
+
+    def get(self, request, title_id):
+        title = Title.objects.filter(pk=title_id).first()
+        if not title:
+            return redirect('app:index')
+        
+        form = EntryForm(request.POST)
+        return render(request, 'new_entry_page.html', {
+            'form': form,
+            'title': title
+            })
+
+    def post(self, request, title_id):
+        if not request.user.is_authenticated:  # check user
+            return redirect('app:index')
+
+        title = Title.objects.filter(pk=title_id).first()  # check title
+        if not title:
+            return redirect('app:index')
+
+        form = EntryForm()
+        return render(request, 'new_entry_page.html', {
+                    'form': form,
+                    'title': title
+                    })
