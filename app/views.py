@@ -11,6 +11,7 @@ import random
 
 from .models import Title, Entry, Author, FollowAuthor, Vote, AuthorsFavorites
 from .forms import LoginForm, SignupForm, TitleForm
+from .constants import ORDER_CHOICES
 
 
 # user can choose random entry count max count is 50
@@ -64,6 +65,7 @@ class TitleView(View):
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
         self.context['show_title'] = False
+        self.context['order_choices'] = ORDER_CHOICES
         return render(request, 'title_page.html', self.context)
 
 
@@ -98,20 +100,49 @@ class FavView(View):
         return render(request, 'home_page.html', self.context)
 
 
-class VotedView(View):
+class OrderView(View):
     context = {}
 
-    def get(self, request, title_id):
+    def get(self, request, title_id, query):
+        print(title_id, query)
+        ENTRY_COUNT = 10
+        if request.user.is_authenticated:
+            ENTRY_COUNT = request.user.title_entry_count
+
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
-        entries = Entry.objects.filter(title=title).annotate(
+        title_entries = Entry.objects.filter(
+            title=title
+        ).annotate(
+            is_fav=Case(
+                When(authorsfavorites__author=request.user, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()),
             up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
             down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
+            fav_count=Count('authorsfavorites')
         )
-        entries = entries.annotate(
-            vote_diff=F('up_votes_count') - F('down_votes_count'))
-        self.context['entries'] = entries.order_by('-vote_diff')
 
+        if (query == 1):  # order by vote
+            title_entries = title_entries.annotate(
+                vote_diff=(F('up_votes_count') - F('down_votes_count')))
+            title_entries = title_entries.order_by('-vote_diff')
+        elif (query == 2):  # order by fav
+            title_entries = title_entries.order_by('-fav_count')
+        elif (query == 3):  # order by created at - first
+            title_entries = title_entries.order_by('created_at')
+        elif (query == 4):  # order by created at - last
+            title_entries = title_entries.order_by('-created_at')
+        else:
+            title_entries = title_entries.order_by('?')
+
+        paginator = Paginator(title_entries, ENTRY_COUNT)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        self.context['page_obj'] = page_obj
+        self.context['show_title'] = False
+        self.context['order_choices'] = ORDER_CHOICES
+        self.context['selected_choice'] = ORDER_CHOICES[query-1]
         return render(request, 'title_page.html', self.context)
 
 

@@ -6,12 +6,25 @@
 
 
 <div class="d-flex flex-column pt-4 justify-content-center align-items-center">
-    <h4><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h4>
-    <div class="d-flex flex-row">
-        <h6 class='px-2'><a href="{% url 'app:most-voted' title.id %}" class='link-success'>Şükela</a></h6>
+    <h3><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h3>
+    <div class="d-flex flex-row align-items-center">
         {% if request.user.is_authenticated %}
-            <h6 class='px-2'><a href="{% url 'app:title' title.id %}" class='link-secondary'>Ekle</a></h6>
+            <h6 class='mx-2 my-4'><a href="{% url 'app:title' title.id %}" class='link-secondary'>Ekle</a></h6>
         {% endif %}
+        <div class="btn-group">
+            <button id="btnGroupDrop1" type="button" class="btn link-secondary dropdown-toggle" data-toggle="dropdown">
+                {% if selected_choice %}
+                    {{selected_choice}}
+                {% else %}
+                    Order By
+                {% endif %}
+            </button>
+            <div class="dropdown-menu">
+                {% for choice in order_choices %}
+                <a class="dropdown-item" href="{% url 'app:order' title.id forloop.counter %}">{{choice}}</a> 
+                {% endfor %}
+            </div>
+        </div>  
     </div>
 </div>
 

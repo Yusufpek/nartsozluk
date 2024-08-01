@@ -24,7 +24,8 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     #
     path('<int:title_id>/title', views.TitleView.as_view(), name="title"),
-    path('<int:title_id>/voted', views.VotedView.as_view(), name="most-voted"),
+    path('<int:title_id>/order/<int:query>',
+         views.OrderView.as_view(), name="order"),
     path('<int:author_id>/profile',
          views.ProfileView.as_view(), name="profile"),
 ]
