@@ -1,7 +1,10 @@
 {% extends "master.html" %}
 
-{% load crispy_forms_tags %} 
 {% load static %}
+{% load crispy_forms_tags %} 
+
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
 
 {% block content %}
 
@@ -17,7 +20,7 @@
                                 {% csrf_token %}
                                 {{ form.media }}
                                 {{ form|crispy }}
-                                <button class="btn login-form__btn new-title">add title</button>
+                                <button class="btn login-form__btn new-title">add entry</button>
                             </form>
                             {% if messages %}
                                 <ul class="messages">

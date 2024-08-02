@@ -28,17 +28,23 @@ class LoginForm(forms.Form):
 class TitleForm(forms.Form):
     text = forms.CharField(max_length=50)
     topic = forms.ChoiceField()
-    entry_content = forms.CharField(widget=CKEditor5Widget())
+    entry_content = forms.CharField(
+        widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}),)
 
     def __init__(self, *args, **kwargs):
         super(TitleForm, self).__init__(*args, **kwargs)
         self.fields['topic'] = forms.ModelChoiceField(
             queryset=Topic.objects.all())
+        self.fields['entry_content'].required = False
 
     def clean(self):
         text = self.cleaned_data.get('text')
+        entry_content = self.cleaned_data.get('entry_content')
+        entry_content = entry_content.split('<p>')[1].split('</p>')[0]
         if Title.objects.filter(text__contains=text).exists():
             raise ValidationError("this title already added")
+        elif entry_content == '&nbsp;':
+            raise ValidationError("entry content can not be empty")
         return self.cleaned_data
 
 
@@ -53,3 +59,9 @@ class EntryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(EntryForm, self).__init__(*args, **kwargs)
         self.fields["content"].required = False
+
+    def clean(self):
+        content = self.cleaned_data.get('content')
+        if content == '<p>&nbsp;</p>':
+            raise ValidationError("entry content can not be empty")
+        return self.cleaned_data

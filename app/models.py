@@ -37,7 +37,7 @@ class Title(models.Model):
 
 
 class Entry(models.Model):
-    content = CKEditor5Field()
+    content = CKEditor5Field(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(Author,  null=True, on_delete=models.SET_NULL)

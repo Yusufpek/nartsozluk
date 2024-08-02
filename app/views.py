@@ -426,7 +426,7 @@ class NewEntryView(View):
         title = Title.objects.filter(pk=title_id).first()
         if not title:
             return redirect('app:index')
-        
+
         form = EntryForm(request.POST)
         return render(request, 'new_entry_page.html', {
             'form': form,
@@ -441,7 +441,23 @@ class NewEntryView(View):
         if not title:
             return redirect('app:index')
 
-        form = EntryForm()
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            entry_content = form.cleaned_data['content']
+            entry = Entry.objects.filter(
+                author=request.user,
+                title=title,
+                content__contains=entry_content).first()
+            if entry:
+                message = 'you already wrote like this.'
+                messages.warning(request, message)
+                return render(request, 'new_entry_page.html', {'form': form})
+            else:
+                Entry(
+                    content=entry_content,
+                    author=request.user,
+                    title=title).save()
+                return redirect('app:title', title_id)
         return render(request, 'new_entry_page.html', {
                     'form': form,
                     'title': title

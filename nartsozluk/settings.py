@@ -140,9 +140,10 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # CKEditor Settings
 CKEDITOR_BASEPATH = "/static/django_ckeditor_5/"
 CKEDITOR_5_CONFIGS = {
-  'default': {
-      'toolbar': ['heading', '|', 'bold', 'italic', 'link',
-                  'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
-      'language': 'en',
-  },
+    'default': {
+        'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                    'bulletedList', 'numberedList', 'blockQuote',],
+        # 'imageUpload', ],
+        'language': 'en',
+    },
 }
