@@ -11,21 +11,27 @@ from django.views import View
 import random
 
 from .models import Title, Entry, Author, FollowAuthor, Vote, AuthorsFavorites
-from .forms import LoginForm, SignupForm, TitleForm, EntryForm
+from .forms import LoginForm, SignupForm, TitleForm, EntryForm, SettingsForm
 from .constants import ORDER_CHOICES
 
 
 # user can choose random entry count max count is 50
-class HomeView(View):
+class BaseView(View):
     context = {}
+    ENTRY_COUNT = 10
 
-    def get(self, request):
-        HOME_ENTRY_COUNT = 10
+    def get_entry_count(self, request):
         if request.user.is_authenticated:
-            HOME_ENTRY_COUNT = request.user.random_entry_count
+            self.ENTRY_COUNT = int(request.user.random_entry_count)
+
+
+class HomeView(BaseView):
+    def get(self, request):
+        self.get_entry_count(request)
+
         pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
         if (pk_max):
-            count = min(pk_max, HOME_ENTRY_COUNT)  # limit with pk and count
+            count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
             random_list = random.sample(range(1, pk_max+1), count)
             if request.user.is_authenticated:
                 entries = Entry.objects.annotate(
@@ -42,13 +48,9 @@ class HomeView(View):
         return render(request, 'home_page.html', self.context)
 
 
-class TitleView(View):
-    context = {}
-
+class TitleView(BaseView):
     def get(self, request, title_id):
-        ENTRY_COUNT = 10
-        if request.user.is_authenticated:
-            ENTRY_COUNT = request.user.title_entry_count
+        self.get_entry_count(request)
 
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
@@ -64,7 +66,7 @@ class TitleView(View):
                 down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
             )
         title_entries = title_entries.order_by('created_at')
-        paginator = Paginator(title_entries, ENTRY_COUNT)
+        paginator = Paginator(title_entries, self.ENTRY_COUNT)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
@@ -120,13 +122,11 @@ class FavView(View):
         return render(request, 'home_page.html', self.context)
 
 
-class OrderView(View):
+class OrderView(BaseView):
     context = {}
 
     def get(self, request, title_id, query):
-        ENTRY_COUNT = 10
-        if request.user.is_authenticated:
-            ENTRY_COUNT = request.user.title_entry_count
+        self.get_entry_count(request)
 
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
@@ -155,7 +155,7 @@ class OrderView(View):
         else:
             title_entries = title_entries.order_by('?')
 
-        paginator = Paginator(title_entries, ENTRY_COUNT)
+        paginator = Paginator(title_entries, self.ENTRY_COUNT)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
@@ -166,20 +166,18 @@ class OrderView(View):
 
 
 # pagination
-class TodayView(View):
+class TodayView(BaseView):
     context = {}
 
     def get(self, request):
-        ENTRY_COUNT = 10
-        if request.user.is_authenticated:
-            ENTRY_COUNT = request.user.title_entry_count
+        self.get_entry_count(request)
 
         titles = Title.objects.filter(created_at__day=timezone.now().day)
         self.context['titles'] = titles.order_by('-created_at')
         entries = Entry.objects.filter(
             created_at__day=timezone.now().day).order_by('-created_at')
 
-        paginator = Paginator(entries, ENTRY_COUNT)
+        paginator = Paginator(entries, self.ENTRY_COUNT)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
@@ -543,3 +541,35 @@ class NotFoundView(View):
 
     def get(self, request):
         return render(request, 'not_found_page.html', self.context)
+
+
+class SettingsView(View):
+    context = {}
+    form = SettingsForm()
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+        form = SettingsForm(request.POST, request.FILES)
+        if form.is_valid():
+            image = form.cleaned_data['profile_image']
+            title_entry_count = form.cleaned_data['title_entry_count']
+            random_entry_count = form.cleaned_data['random_entry_count']
+            request.user.profile_image = image
+            request.user.title_entry_count = title_entry_count
+            request.user.random_entry_count = random_entry_count
+            request.user.save()
+            return redirect('app:profile', request.user.id)
+        return render(request, 'settings_page.html', {'form': form})
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+        initial = {
+            'home_page_entry_count': request.user.random_entry_count,
+            'title_entry_count': request.user.title_entry_count,
+            'profile_image': request.user.profile_image
+        }
+        form = SettingsForm(initial=initial)
+        self.context['form'] = form
+        return render(request, 'settings_page.html', self.context)

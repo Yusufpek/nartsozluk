@@ -207,7 +207,7 @@
                         <li class="icons dropdown">
                             <div class="user-img c-pointer position-relative"   data-toggle="dropdown">
                                 <span class="activity active"></span>
-                                <img src="{% static 'images/user/1.png' %}"  height="40" width="40" alt="">
+                                <img src="{{request.user.profile_image.url}}"  height="40" width="40" alt="">
                             </div>
                             <div class="drop-down dropdown-profile animated fadeIn dropdown-menu">
                                 <div class="dropdown-content-body">
@@ -222,8 +222,8 @@
                                         </li>
                                         
                                         <li>
-                                            <a a class="nav-link link-dark" href="{% url 'app:profile' request.user.id %}">
-                                                <i class="icon-user"></i> <span>Settings</span>
+                                            <a a class="nav-link link-dark" href="{% url 'app:settings' %}">
+                                                <i class="bi bi-gear"></i> <span>Settings</span>
                                             </a>
                                         </li>
                                         

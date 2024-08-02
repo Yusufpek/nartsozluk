@@ -38,6 +38,8 @@ urlpatterns = [
     # user profile pages
     path('<int:author_id>/profile',
          views.ProfileView.as_view(), name="profile"),
+    path('settings/',
+         views.SettingsView.as_view(), name='settings'),
 
     path('not-found', views.NotFoundView.as_view(), name='not-found')
 ]

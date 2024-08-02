@@ -65,3 +65,9 @@ class EntryForm(forms.ModelForm):
         if content == '<p>&nbsp;</p>':
             raise ValidationError("entry content can not be empty")
         return self.cleaned_data
+
+
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = Author
+        fields = ['random_entry_count', 'title_entry_count', 'profile_image']

@@ -7,7 +7,7 @@
     <div class="d-flex flex-row p-4 justify-content-between align-items-center">
         <div class="user-img position-relative">
             <span class="activity active"></span>
-            <img src="{% static 'images/user/1.png' %}"  height="40" width="40" alt="">
+            <img src="{{author.profile_image.url}}"  height="40" width="40" alt="">
         </div>
         <h3 class="col">{{author.username}} profile</h3>
         {% if follow != -1 %}
