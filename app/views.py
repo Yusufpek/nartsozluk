@@ -566,7 +566,7 @@ class SettingsView(View):
         if not request.user.is_authenticated:
             return redirect('app:login')
         initial = {
-            'home_page_entry_count': request.user.random_entry_count,
+            'random_entry_count': request.user.random_entry_count,
             'title_entry_count': request.user.title_entry_count,
             'profile_image': request.user.profile_image
         }
