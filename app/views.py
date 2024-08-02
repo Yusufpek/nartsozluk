@@ -243,7 +243,9 @@ class ProfileView(View):
         user_titles = Title.objects.filter(owner=author).order_by('created_at')
         self.context['titles'] = user_titles
         follow = 0  # can follow
-        if (request.user == author):
+        if (not request.user.is_authenticated):
+            follow = -1  # there is no user logged in
+        elif (request.user == author):
             follow = 1  # same person
         else:
             try:
@@ -266,12 +268,15 @@ class SignupView(View):
         if form.is_valid():
             if (request.user.is_authenticated):
                 logout(request)
+            # form auto hash the password but authenticated wants to raw pass
             author = form.save(commit=False)
+            password = form.cleaned_data['password1']
             author.save()
             user = authenticate(request,
                                 username=author.username,
-                                password=author.password)
+                                password=password)
             if user:
+                print(user)
                 login(request, user)
             return redirect('app:index')
         else:
