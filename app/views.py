@@ -21,6 +21,8 @@ class BaseView(View):
     ENTRY_COUNT = 10
 
     def get_entry_count(self, request):
+        self.context['entries'] = None
+        self.context['page_obj'] = None
         if request.user.is_authenticated:
             self.ENTRY_COUNT = int(request.user.random_entry_count)
 
