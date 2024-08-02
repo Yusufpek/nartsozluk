@@ -60,9 +60,11 @@ class EntryForm(forms.ModelForm):
         super(EntryForm, self).__init__(*args, **kwargs)
         self.fields["content"].required = False
 
-    def clean(self):
+    def clean(self):  # avoid empty entries
         content = self.cleaned_data.get('content')
-        if content == '<p>&nbsp;</p>':
+        content = content.replace('&nbsp;', '').replace(
+            '<p>', '').replace('</p>', '')
+        if content.replace(' ', '') == '':
             raise ValidationError("entry content can not be empty")
         return self.cleaned_data
 
