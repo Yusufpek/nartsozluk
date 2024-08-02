@@ -5,14 +5,167 @@
         {% for entry in entries %}
             {% include 'components/entry_card.html' %}
         {% endfor %}
-    {% elif page_obj.object_list %}
-        {% for entry in page_obj.object_list %}
-            {% include 'components/entry_card.html' %}
-        {% endfor %}
     {% else %}
-        <div>
-            <h5> No entry :/</h5>
-        </div>
+        {% if page_obj.object_list %}
+            {% for entry in page_obj.object_list %}
+                {% include 'components/entry_card.html' %}
+            {% endfor %}
+        {% else %}
+            <div>
+                <h5> No entry :/</h5>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 
+
+
+<script>
+    $(document).ready(function() {
+        $('.vote-button').click(function() {
+            const showTitle = {{ show_title|yesno:"true,false" }};
+
+            const entryId = $(this).data('entry-id');
+            const isUp = $(this).data('up');
+            const button = $(this); 
+            console.log('click');
+
+            $.ajax({
+                url: "{% url 'app:vote' %}",  // The URL of your upvote view
+                method: 'POST',
+                data: {
+                    'entry_id': entryId,
+                    'is_up': isUp,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log("success")
+                        if(!showTitle){
+                            $(`[data-entry-id="${entryId}"].vote-button[data-up="1"]`).find('i').text(response.up_votes_count);
+                            $(`[data-entry-id="${entryId}"].vote-button[data-up="0"]`).find('i').text(response.down_votes_count);
+                        }
+
+                        $('.vote-button i').css({'color': ''});
+
+                        if (isUp) {
+                            button.find('i').css({
+                                'color': '#28a745'
+                            });
+                        } else {
+                            button.find('i').css({
+                                'color': '#dc3545'
+                            });
+                        }
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(response) {
+                    // Handle the error
+                    alert('Error registering upvote.');
+                }
+            });
+        });
+
+        $('.favorite-button').click(function() {
+            const entryId = $(this).data('entry-id');
+            const button = $(this);
+
+            $.ajax({
+                url: "{% url 'app:fav-entry' %}",  // The URL of your favorite view
+                method: 'POST',
+                data: {
+                    'entry_id': entryId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log("Favorite updated");
+
+                        if (response.is_favorite) {
+                            button.find('i').css({
+                                'color': 'orange'
+                            }).addClass('bi-bookmark-heart-fill').removeClass('bi-bookmark-heart');
+                        } else {
+                            button.find('i').css({
+                                'color': ''
+                            }).addClass('bi-bookmark-heart').removeClass('bi-bookmark-heart-fill');
+                        }
+                    } else {
+                        alert('Error: ' + response.error);
+                }
+            },
+            error: function(response) {
+                // Handle the error
+                alert('Error updating favorite.');
+            }
+            });
+        });
+        // Delete buttons
+        $('.user-button.trash').click(function(event) {
+            event.preventDefault();
+            const entryId = $(this).data('entry-id');
+            $('#confirmDeleteModal').data('entry-id', entryId).modal('show');
+        });
+        $('#confirmDelete').click(function() {
+            const entryId = $('#confirmDeleteModal').data('entry-id');
+            $.ajax({
+                url: "{% url 'app:delete-entry' %}",  // The URL of your delete view
+                method: 'POST',
+                data: {
+                    'entry_id': entryId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`[data-entry-id="${entryId}"]`).closest('.card').remove();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(response) {
+                    alert('Error deleting entry.');
+                }
+            });
+            $('#confirmDeleteModal').modal('hide');
+        });
+        $('#cancel').click(function() {$('#confirmDeleteModal').modal('hide');});
+        $('#cancelButton').click(function() {$('#confirmDeleteModal').modal('hide');});
+        // Copy button
+        $('.copy-url-button').click(function() {
+            const entryId = $(this).data('entry-id');
+            const url = window.location.origin + "{% url 'app:entry' 0 %}".replace('0', entryId);
+            
+            const tempInput = document.createElement("input");
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            alert("Copied the URL: " + url);
+        });
+    });
+</script>
+
+<!-- Add a modal for delete confirmation -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">confirm Delete</h5>
+                <button type="button" id="cancel" class='close' data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                are you sure you want to delete this entry?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id='cancelButton'>cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">delete</button>
+            </div>
+        </div>
+    </div>
+</div>
