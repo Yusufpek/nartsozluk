@@ -1,0 +1,240 @@
+{% load static %}
+
+<script>
+    $(document).ready(function() {
+        $('.vote-button').click(function() {
+            const showTitle = {{ show_title|yesno:"true,false" }};
+
+            const entryId = $(this).data('entry-id');
+            const isUp = $(this).data('up');
+            const button = $(this); 
+
+            $.ajax({
+                url: "{% url 'app:vote' %}",  // The URL of your upvote view
+                method: 'POST',
+                data: {
+                    'entry_id': entryId,
+                    'is_up': isUp,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log("success")
+                        if(!showTitle){
+                            $(`[data-entry-id="${entryId}"].vote-button[data-up="1"]`).find('i').text(response.up_votes_count);
+                            $(`[data-entry-id="${entryId}"].vote-button[data-up="0"]`).find('i').text(response.down_votes_count);
+                            console.log('no title area')
+                        }else{
+                            console.log('title area')
+                        }
+
+                        $('.vote-button i').css({'color': ''});
+
+                        if (isUp) {
+                            button.find('i').css({
+                                'color': '#28a745'
+                            });
+                        } else {
+                            button.find('i').css({
+                                'color': '#dc3545'
+                            });
+                        }
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(response) {
+                    // Handle the error
+                    alert('Error registering upvote.');
+                }
+            });
+        });
+
+        $('.favorite-button').click(function() {
+            const entryId = $(this).data('entry-id');
+            const button = $(this);
+
+            $.ajax({
+                url: "{% url 'app:fav-entry' %}",  // The URL of your favorite view
+                method: 'POST',
+                data: {
+                    'entry_id': entryId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log("Favorite updated");
+
+                        if (response.is_favorite) {
+                            button.find('i').css({
+                                'color': 'orange'
+                            }).addClass('bi-bookmark-heart-fill').removeClass('bi-bookmark-heart');
+                        } else {
+                            button.find('i').css({
+                                'color': ''
+                            }).addClass('bi-bookmark-heart').removeClass('bi-bookmark-heart-fill');
+                        }
+                    } else {
+                        alert('Error: ' + response.error);
+                }
+            },
+            error: function(response) {
+                // Handle the error
+                alert('Error updating favorite.');
+            }
+            });
+        });
+        // Delete buttons
+        $('.user-button.trash').click(function(event) {
+            event.preventDefault();
+            const entryId = $(this).data('entry-id');
+            $('#confirmDeleteModal').data('entry-id', entryId).modal('show');
+        });
+        $('#confirmDelete').click(function() {
+            const entryId = $('#confirmDeleteModal').data('entry-id');
+            $.ajax({
+                url: "{% url 'app:delete-entry' %}",  // The URL of your delete view
+                method: 'POST',
+                data: {
+                    'entry_id': entryId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`[data-entry-id="${entryId}"]`).closest('.card').remove();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(response) {
+                    alert('Error deleting entry.');
+                }
+            });
+            $('#confirmDeleteModal').modal('hide');
+        });
+        $('#cancel').click(function() {$('#confirmDeleteModal').modal('hide');});
+        $('#cancelButton').click(function() {$('#confirmDeleteModal').modal('hide');});
+        // Copy button
+        $('.copy-url-button').click(function() {
+            const entryId = $(this).data('entry-id');
+            const url = window.location.origin + "{% url 'app:entry' 0 %}".replace('0', entryId);
+            
+            const tempInput = document.createElement("input");
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            alert("Copied the URL: " + url);
+        });
+    });
+</script>
+
+<!-- Add a modal for delete confirmation -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">confirm Delete</h5>
+                <button type="button" id="cancel" class='close' data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                are you sure you want to delete this entry?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id='cancelButton'>cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="card-body">
+        {% if show_title %}
+        <h4 class='card-title'>
+            <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
+        </h4>
+        {% endif %}
+        {{entry.content|safe}}
+        <hr/>
+        <div class="d-sm-flex justify-content-between mb-2">
+            <h6 class="mb-sm-0">
+                {% if entry.author != None %}
+                <a href= "{% url 'app:profile' entry.author.id %}" class='link-secondary'>{{entry.author}}</a>
+                {% else %}
+                Deleted User
+                {% endif %}
+            </h6>
+            <small class="text-muted ml-3">
+                {{entry.created_at|date:"M d, Y - h:m" }}
+                {% if entry.is_edited %}
+                ~ {{entry.updated_at|date:"M d, Y - h:m" }}
+                {% endif %}
+            </small>
+            {% if request.user.is_authenticated %}
+            <div class="media-reply__link">
+                <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.id }}" data-up="1"  style="color: initial;">
+                    <i class="bi bi-arrow-up"></i>
+                </button>
+                <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.id }}" data-up="0"  style="color: initial;">
+                    <i class="bi bi-arrow-down"></i>
+                </button>
+                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 favorite-button" data-entry-id="{{ entry.id }}"style="color: initial;">
+                    {% if entry.is_fav %}
+                    <i class="bi bi-bookmark-heart-fill" style="color: orange;"></i>
+                    {% else %}
+                                <i class="bi bi-bookmark-heart"></i>
+                            {% endif %}    
+                        </button>
+                    <div class="btn-group">
+                        <button id="btnGroupDrop1" type="button" class="btn link-secondary" data-toggle="dropdown">
+                            <i class='bi bi-three-dots-vertical'></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            {% if request.user == entry.author %}
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.id }}"style="color: initial;">
+                                    <a href="{% url 'app:edit-entry' entry.id%}" class='link-light'>
+                                        <i class="bi bi-pencil"> edit entry</i>
+                                    </a>
+                                </button>
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button trash" data-entry-id="{{ entry.id }}" style="color: initial;">
+                                    <i class="bi bi-trash"> delete entry</i>
+                                </button>
+                            {% endif %}
+                            <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 copy-url-button" data-entry-id="{{ entry.id }}" style="color: initial;">
+                                <i class="bi bi-clipboard"> copy entry url</i>
+                            </button>
+                        </div>
+                    </div>  
+            </div>
+            {% endif %}
+            </div>
+        </div>
+</div>
+
+
+<style>
+    .vote-button:hover i.bi-arrow-up {
+        color: green;
+    }
+    .vote-button:hover i.bi-arrow-down {
+        color: red;
+    }
+    .copy-url-button:hover i {
+        color: blue;
+    }
+    .favorite-button:hover i {
+        color: orange;
+    }
+    .user-button:hover i {
+        color: orange;
+    }
+    .user-button:hover i.bi-trash{
+        color: red;
+    }
+</style>

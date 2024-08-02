@@ -515,3 +515,31 @@ class EntryEditView(View):
                 return redirect('app:title', entry.title.id)
         return render(request, 'new_entry_page.html',
                       {'form': form, 'title': entry.title})
+
+
+class EntryView(View):
+    context = {}
+
+    def get(self, request, entry_id):
+        entry = Entry.objects.filter(pk=entry_id)
+        if not entry:
+            return redirect('app:not-found')
+        if request.user.is_authenticated:
+            entry = entry.annotate(
+                    is_fav=Case(When(
+                        authorsfavorites__author=request.user,
+                        then=Value(True)),
+                        default=Value(False), output_field=BooleanField()),
+                    up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
+                    down_votes_count=Count('vote', filter=Q(vote__is_up=False))
+                )
+        self.context["entries"] = [entry.first()]
+        self.context['show_title'] = True
+        return render(request, 'home_page.html', self.context)
+
+
+class NotFoundView(View):
+    context = {}
+
+    def get(self, request):
+        return render(request, 'not_found_page.html', self.context)

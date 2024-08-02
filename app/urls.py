@@ -13,6 +13,7 @@ urlpatterns = [
     path('fav', views.FavView.as_view(), name="fav"),
     path('ldmv', views.LDMVViews.as_view(), name="ldmv"),
     # entry pages
+    path('<int:entry_id>/entry/', views.EntryView.as_view(), name='entry'),
     path('fav_entry', views.FavEntryView.as_view(), name="fav-entry"),
     path('delete_entry', views.DeleteEntryView.as_view(), name="delete-entry"),
     path('<int:title_id>/new-entry',
@@ -37,4 +38,6 @@ urlpatterns = [
     # user profile pages
     path('<int:author_id>/profile',
          views.ProfileView.as_view(), name="profile"),
+
+    path('not-found', views.NotFoundView.as_view(), name='not-found')
 ]
