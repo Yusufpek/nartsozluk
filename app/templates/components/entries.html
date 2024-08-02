@@ -81,11 +81,62 @@
                     // Handle the error
                     alert('Error updating favorite.');
                 }
+                });
             });
-        });
+            
+            $('.user-button.trash').click(function(event) {
+                event.preventDefault();
+                const entryId = $(this).data('entry-id');
+                $('#confirmDeleteModal').data('entry-id', entryId).modal('show');
+            });
+            
+            $('#confirmDelete').click(function() {
+                const entryId = $('#confirmDeleteModal').data('entry-id');
+                $.ajax({
+                    url: "{% url 'app:delete-entry' %}",  // The URL of your delete view
+                    method: 'POST',
+                    data: {
+                        'entry_id': entryId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $(`[data-entry-id="${entryId}"]`).closest('.card').remove();
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function(response) {
+                        alert('Error deleting entry.');
+                    }
+                });
+                $('#confirmDeleteModal').modal('hide');
+            });
+            $('#cancel').click(function() {$('#confirmDeleteModal').modal('hide');});
+            $('#cancelButton').click(function() {$('#confirmDeleteModal').modal('hide');});
         });
     </script>
 
+<!-- Add a modal for delete confirmation -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">confirm Delete</h5>
+                <button type="button" id="cancel" class='close' data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                are you sure you want to delete this entry?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id='cancelButton'>cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">delete</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% comment %} entries with entries object {% endcomment %}
 {% if entries %}
     {% for entry in entries %}
@@ -127,8 +178,25 @@
                                     <i class="bi bi-bookmark-heart"></i>
                                 {% endif %}    
                             </button>
-                        </div>
-                    {% endif %}
+                        <div class="btn-group">
+                            <button id="btnGroupDrop1" type="button" class="btn link-secondary" data-toggle="dropdown">
+                                <i class='bi bi-three-dots-vertical'></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                {% if request.user == entry.author %}
+                                    <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.id }}"style="color: initial;">
+                                        <a href="{% url 'app:edit-entry' entry.id%}" class='link-light'>
+                                            <i class="bi bi-pencil"> edit entry</i>
+                                        </a>
+                                    </button>
+                                    <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button trash" data-entry-id="{{ entry.id }}" style="color: initial;">
+                                        <i class="bi bi-trash"> delete entry</i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>  
+                </div>
+                {% endif %}
                 </div>
             </div>
         </div>
@@ -176,12 +244,29 @@
                 </button>
                 <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 favorite-button" data-entry-id="{{ entry.id }}"style="color: initial;">
                     {% if entry.is_fav %}
-                    <i class="bi bi-bookmark-heart-fill" style="color: orange;"></i>
+                        <i class="bi bi-bookmark-heart-fill" style="color: orange;"></i>
                     {% else %}
-                                <i class="bi bi-bookmark-heart"></i>
-                            {% endif %}    
+                        <i class="bi bi-bookmark-heart"></i>
+                    {% endif %}    
+                </button>
+                    <div class="btn-group">
+                        <button id="btnGroupDrop1" type="button" class="btn link-secondary" data-toggle="dropdown">
+                            <i class='bi bi-three-dots-vertical'></i>
                         </button>
-                    </div>
+                        <div class="dropdown-menu">
+                            {% if request.user == entry.author %}
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.id }}"style="color: initial;">
+                                    <a href="{% url 'app:edit-entry' entry.id%}" class='link-light'>
+                                        <i class="bi bi-pencil"> edit entry</i>
+                                    </a>
+                                </button>
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button trash" data-entry-id="{{ entry.id }}" style="color: initial;">
+                                    <i class="bi bi-trash"> delete entry</i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>  
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -202,6 +287,12 @@
         }
         .favorite-button:hover i {
             color: orange;
+        }
+        .user-button:hover i {
+            color: orange;
+        }
+        .user-button:hover i.bi-trash{
+            color: red;
         }
     </style>
 </div>

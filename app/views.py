@@ -467,3 +467,51 @@ class NewEntryView(View):
                     'form': form,
                     'title': title
                     })
+
+
+class DeleteEntryView(View):
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return redirect('app:index')
+
+        entry_id = request.POST.get('entry_id')
+        entry = Entry.objects.filter(pk=entry_id, author=request.user).first()
+        if entry:
+            print("entry found")
+            entry.delete()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Entry does not exist, or the author is not valid'})
+
+
+class EntryEditView(View):
+    def get(self, request, entry_id):
+        entry = Entry.objects.filter(pk=entry_id).first()
+        if not entry:
+            return redirect('app:index')
+
+        form = EntryForm(initial={'content': entry.content})
+        return render(request, 'new_entry_page.html', {
+            'form': form, 'title': entry.title})
+
+    def post(self, request, entry_id):
+        if not request.user.is_authenticated:  # check user
+            return redirect('app:index')
+
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            entry_content = form.cleaned_data['content']
+            entry = Entry.objects.filter(
+                pk=entry_id, author=request.user).first()
+            if not entry:
+                message = 'you already wrote like this.'
+                messages.warning(request, message)
+                return render(request, 'new_entry_page.html', {'form': form})
+            else:
+                entry.content = entry_content
+                entry.save()
+                return redirect('app:title', entry.title.id)
+        return render(request, 'new_entry_page.html',
+                      {'form': form, 'title': entry.title})
