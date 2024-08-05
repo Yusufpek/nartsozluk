@@ -223,7 +223,7 @@ class FavView(BaseView):
     def get(self, request):
         self.check_and_redirect_to_login(request)
         super().get(request)
-        
+
         entries = Entry.objects.filter(
             authorsfavorites__author=request.user
             ).annotate(is_fav=Value(True, output_field=BooleanField()))
@@ -389,7 +389,7 @@ class ProfileView(BaseView):
             self.set_pagination(followers, request)
 
         self.context['show_title'] = True
-        
+
         # ajax request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             if query == 1:
