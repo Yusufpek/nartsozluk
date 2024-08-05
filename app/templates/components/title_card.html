@@ -1,15 +1,15 @@
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>{{title.text}}</a>
-                {% if title.entries_count %}
+<a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <div class="d-flex justify-content-between align-items-center">
+                    {{title.text}}
+                    <small>{{title.created_at}}</small> 
+                    {% if title.entries_count %}
                     <div> {{title.entries_count}} </div>
-                {% endif %}
-            </div>
-        </h5>
-        <div class="card-footer d-flex justify-content-between text-muted">
-            {{title.created_at}} 
+                    {% endif %}
+                </div>
+            </h5>
         </div>
     </div>
-</div>
+</a>

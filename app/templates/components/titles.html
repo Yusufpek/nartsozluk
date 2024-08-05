@@ -1,15 +1,7 @@
 <div class="p-5">
     {% if titles %}
         {% for title in titles %}
-        <div class="card text-white bg-dark mb-3" style="max-width: 48rem;">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <a href="{% url 'app:title' title.id %}" class='link-light'>{{title.text}}</a></h5>
-                <div class="card-footer d-flex justify-content-between text-muted">
-                    <div> {{title.created_at}} </div>
-                </div>
-            </div>
-        </div>
+            {% include 'components/title_card.html' %}
         {% endfor %}
     {% else %}
         {% if page_obj.object_list %}
