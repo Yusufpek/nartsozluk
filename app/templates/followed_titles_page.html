@@ -1,0 +1,35 @@
+{% extends "master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<div class='d-flex flex-col justify-content-center align-items-center'>
+    <div class='row'>
+        {% if titles %}
+            <h4>Followed Titles</h4>
+            <div class="p-5">
+                {% for title in titles %}
+                <div class="card text-white bg-dark mb-3" style="width: 36rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'app:followed-title-entries' title.id %}" class='link-light'>{{title.text}}</a>
+                        </h5>
+                        <div class="card-footer d-flex justify-content-between text-muted">
+                            <div> {{title.created_at}} </div>
+                            <div> {{title.entries_count}} </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div>
+                <h5> No followed title :/</h5>
+            </div>
+        {% endif %}
+    </div>
+    
+</div>
+
+{% endblock %}

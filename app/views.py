@@ -21,11 +21,14 @@ class BaseView(View):
     context = {}
     ENTRY_COUNT = 10
 
-    def get_entry_count(self, request):
+    def get_entry_count(self, request, is_title=True):
         self.context['entries'] = None
         self.context['page_obj'] = None
         if request.user.is_authenticated:
-            self.ENTRY_COUNT = int(request.user.random_entry_count)
+            if is_title:
+                self.ENTRY_COUNT = int(request.user.title_entry_count)
+            else:
+                self.ENTRY_COUNT = int(request.user.random_entry_count)
 
     def get_is_fav_attr_entry(self, base_manager, user):
         if (user.is_authenticated):
@@ -49,10 +52,25 @@ class BaseView(View):
         if not request.user.is_authenticated:
             return redirect('app:login')
 
+    def set_pagination(self, base_manager, request):
+        paginator = Paginator(base_manager, self.ENTRY_COUNT)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        self.context['page_obj'] = page_obj
+
+    def set_entries_for_title_page(self, base_manager, request):
+        self.get_entry_count(request)
+        title_entries = self.get_is_fav_attr_entry(base_manager, request.user)
+        title_entries = self.get_vote_counts_entry(title_entries)
+        title_entries = title_entries.order_by('created_at')
+        self.set_pagination(title_entries, request)
+
+        self.context['show_title'] = False
+
 
 class HomeView(BaseView):
     def get(self, request):
-        self.get_entry_count(request)
+        self.get_entry_count(request, is_title=False)
 
         pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
         if (pk_max):
@@ -73,12 +91,7 @@ class TitleView(BaseView):
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
-        title_entries = self.get_is_fav_attr_entry(title_entries, request.user)
-        title_entries = self.get_vote_counts_entry(title_entries)
-        title_entries = title_entries.order_by('created_at')
-        paginator = Paginator(title_entries, self.ENTRY_COUNT)
-        page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
+        title_entries = self.set_entries_for_title_page(title_entries, request)
 
         is_follow = False
         if request.user.is_authenticated:
@@ -88,9 +101,7 @@ class TitleView(BaseView):
                 is_follow = True
                 follow_title.save()  # update the last seen
 
-        self.context['page_obj'] = page_obj
         self.context['is_follow'] = is_follow
-        self.context['show_title'] = False
         self.context['order_choices'] = ORDER_CHOICES
         return render(request, 'title_page.html', self.context)
 
@@ -129,9 +140,30 @@ class FollowedTitleView(BaseView):
         print(titles)
         titles = titles.annotate(entries_count=Count(
             'entry',
-            filter=Q(entry__created_at__gt=F('followtitle__last_seen'))))
-        self.context['titles'] = titles
-        return render(request, 'latest_page.html', self.context)
+            filter=Q(entry__created_at__gt=F('followtitle__last_seen')),
+            distinct=True))
+        self.context['titles'] = titles.order_by('-entries_count')
+        return render(request, 'followed_titles_page.html', self.context)
+
+
+class FollowedTitleEntries(BaseView):
+    def get(self, request, title_id):
+        self.check_and_redirect_to_login(request)
+        title = Title.objects.filter(pk=title_id).first()
+        follow = FollowTitle.objects.filter(
+            title=title, author=request.user).first()
+        if title:
+            self.context['title'] = title
+            entries = Entry.objects.filter(
+                title=title, created_at__gt=follow.last_seen
+                ).order_by('-created_at')
+            follow.save()  # update last seen
+            if len(entries) > 0:
+                self.set_entries_for_title_page(entries, request)
+                return render(request, 'title_page.html', self.context)
+            return redirect('app:title', title_id)  # no entry show all
+        else:
+            return render('app:not-found')
 
 
 class FollowView(BaseView):
@@ -189,8 +221,7 @@ class OrderView(BaseView):
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
-        title_entries = self.get_is_fav_attr_entry(title_entries, request.user)
-        title_entries = self.get_vote_counts_entry(title_entries)
+        title_entries = self.get_entries_for_title_page(title_entries, request)
         title_entries = self.get_fav_counts_entry(title_entries)
 
         if (query == 1):  # order by vote
@@ -206,11 +237,6 @@ class OrderView(BaseView):
         else:
             title_entries = title_entries.order_by('?')
 
-        paginator = Paginator(title_entries, self.ENTRY_COUNT)
-        page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
-        self.context['page_obj'] = page_obj
-        self.context['show_title'] = False
         self.context['order_choices'] = ORDER_CHOICES
         self.context['selected_choice'] = ORDER_CHOICES[query-1]
         return render(request, 'title_page.html', self.context)
@@ -228,10 +254,9 @@ class TodayView(BaseView):
         entries = Entry.objects.filter(
             created_at__day=timezone.now().day).order_by('-created_at')
 
-        paginator = Paginator(entries, self.ENTRY_COUNT)
-        page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
-        self.context['page_obj'] = page_obj
+        entries = self.get_is_fav_attr_entry(entries, request.user)
+        self.set_pagination(entries, request)
+
         self.context['entries'] = entries
         self.context['show_title'] = True
         return render(request, 'today_page.html', self.context)
@@ -263,13 +288,13 @@ class LatestView(View):
     def get(self, request):
         count = Count(
             'entry',
-            filter=Q(created_at__day=timezone.now().day))
+            filter=Q(entry__created_at__day=timezone.now().day))
         titles = Title.objects.annotate(entries_count=count)
         self.context['titles'] = titles.order_by('-entries_count')[:25]
         return render(request, 'latest_page.html', self.context)
 
 
-class ProfileView(View):
+class ProfileView(BaseView):
     context = {}
 
     def get(self, request, author_id):
@@ -286,9 +311,12 @@ class ProfileView(View):
             author.upvote_ratio = 0
         self.context['author'] = author
         user_entries = Entry.objects.filter(author=author)
-        self.context['entries'] = user_entries.order_by('created_at')
+        user_entries = self.get_is_fav_attr_entry(user_entries, request)
+        self.set_pagination(user_entries, request)
+
         user_titles = Title.objects.filter(owner=author).order_by('created_at')
         self.context['titles'] = user_titles
+
         follow = 0  # can follow
         if (not request.user.is_authenticated):
             follow = -1  # there is no user logged in
@@ -302,6 +330,7 @@ class ProfileView(View):
                 follow = 2  # already follower
             except FollowAuthor.DoesNotExist:
                 follow = 0
+
         self.context['follow'] = follow
         self.context['show_title'] = True
         return render(request, 'profile_page.html', self.context)

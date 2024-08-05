@@ -33,6 +33,8 @@ urlpatterns = [
     # title pages
     path('followed-titles',
          views.FollowedTitleView.as_view(), name="followed-title"),
+    path('<int:title_id>/followed-title-entries',
+         views.FollowedTitleEntries.as_view(), name="followed-title-entries"),
     path('<int:title_id>/title', views.TitleView.as_view(), name="title"),
     path('<int:title_id>/order/<int:query>',
          views.OrderView.as_view(), name="order"),
