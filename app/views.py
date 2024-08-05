@@ -21,6 +21,22 @@ class BaseView(View):
     context = {}
     ENTRY_COUNT = 10
 
+    def get(self, request):
+        # last followers
+        if request.user.is_authenticated:
+            follows = FollowAuthor.objects.filter(
+                follow=request.user).order_by('-follow_date')[:3]
+            user_ids = follows.values_list('user_id', flat='anonymous')
+            users = Author.objects.filter(pk__in=user_ids)
+            self.context['last_follows'] = follows
+            self.context['last_followers_count'] = users.count()
+            self.get_entry_count(request)
+            # last favs
+            follow_title = FollowTitle.objects.filter(author=request.user)
+            follow_title = follow_title.order_by('last_seen')[:5]
+            self.context['last_seen_titles'] = follow_title
+            self.context['last_seen_count'] = follow_title.count()
+
     def get_entry_count(self, request, is_title=True):
         self.context['entries'] = None
         self.context['page_obj'] = None
@@ -70,6 +86,7 @@ class BaseView(View):
 
 class HomeView(BaseView):
     def get(self, request):
+        super().get(request)
         self.get_entry_count(request, is_title=False)
 
         pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
@@ -86,7 +103,7 @@ class HomeView(BaseView):
 
 class TitleView(BaseView):
     def get(self, request, title_id):
-        self.get_entry_count(request)
+        super().get(request)
 
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
@@ -133,11 +150,11 @@ class FollowedTitleView(BaseView):
 
     def get(self, request):
         self.check_and_redirect_to_login(request)
+        super().get(request)
 
         follows = FollowTitle.objects.filter(author=request.user)
         title_ids = follows.values_list('title_id', flat=True)
         titles = Title.objects.filter(pk__in=title_ids)
-        print(titles)
         titles = titles.annotate(entries_count=Count(
             'entry',
             filter=Q(entry__created_at__gt=F('followtitle__last_seen')),
@@ -149,6 +166,8 @@ class FollowedTitleView(BaseView):
 class FollowedTitleEntries(BaseView):
     def get(self, request, title_id):
         self.check_and_redirect_to_login(request)
+        super().get(request)
+
         title = Title.objects.filter(pk=title_id).first()
         follow = FollowTitle.objects.filter(
             title=title, author=request.user).first()
@@ -171,6 +190,7 @@ class FollowView(BaseView):
 
     def get(self, request):
         self.check_and_redirect_to_login(request)
+        super().get(request)
 
         follows = FollowAuthor.objects.filter(user=request.user)
         author_ids = follows.values_list('follow_id', flat=True)
@@ -197,12 +217,13 @@ class FollowView(BaseView):
             return render(request, 'follow_page.html', self.context)
 
 
-class FavView(View):
+class FavView(BaseView):
     context = {}
 
     def get(self, request):
-        if (not request.user.is_authenticated):
-            return redirect('app:index')
+        self.check_and_redirect_to_login(request)
+        super().get(request)
+        
         entries = Entry.objects.filter(
             authorsfavorites__author=request.user
             ).annotate(is_fav=Value(True, output_field=BooleanField()))
@@ -216,7 +237,7 @@ class OrderView(BaseView):
     context = {}
 
     def get(self, request, title_id, query):
-        self.get_entry_count(request)
+        super().get(request)
 
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
@@ -247,7 +268,7 @@ class TodayView(BaseView):
     context = {}
 
     def get(self, request):
-        self.get_entry_count(request)
+        super().get(request)
 
         titles = Title.objects.filter(created_at__day=timezone.now().day)
         titles = titles.order_by('-created_at')
@@ -255,7 +276,6 @@ class TodayView(BaseView):
             created_at__day=timezone.now().day).order_by('-created_at')
 
         query = int(request.GET.get('query', 1))
-        print(query)
         if query == 1:
             entries = self.get_is_fav_attr_entry(entries, request.user)
             self.set_pagination(entries, request)
@@ -279,6 +299,7 @@ class LDMVViews(BaseView):
     context = {}
 
     def get(self, request):
+        super().get(request)
         LDMV_COUNT = 5
         yesterday = (timezone.now() - timezone.timedelta(days=1)).day
         entries = Entry.objects.filter(created_at__day=yesterday)
@@ -295,10 +316,12 @@ class LDMVViews(BaseView):
 
 
 # pagination
-class LatestView(View):
+class LatestView(BaseView):
     context = {}
 
     def get(self, request):
+        super().get(request)
+
         count = Count(
             'entry',
             filter=Q(entry__created_at__day=timezone.now().day))
@@ -311,24 +334,27 @@ class ProfileView(BaseView):
     context = {}
 
     def get(self, request, author_id):
+        super().get(request)
+
         # distinct=True meaning is each unique row is only counted once.
-        author = Author.objects.annotate(
+        author = Author.objects.filter(
+            pk=author_id
+        ).annotate(
+            entry_count=Count('entry', distinct=True),
+            title_count=Count('title', distinct=True),
             follower_count=Count('followers', distinct=True),
             total_votes=Count('entry__vote', distinct=True),
-            up_votes=Count('entry__vote', filter=Q(entry__vote__is_up=True)),
+            up_votes=Count('entry__vote',
+                           filter=Q(entry__vote__is_up=True), distinct=True),
             ).annotate(
                 upvote_ratio=ExpressionWrapper(
                     (F('up_votes') * 100 / F('total_votes')),
-                    output_field=FloatField())).get(pk=author_id)
+                    output_field=FloatField())).first()
+        if not author:
+            return redirect('app:not-found')
         if author.total_votes == 0:
             author.upvote_ratio = 0
         self.context['author'] = author
-        user_entries = Entry.objects.filter(author=author)
-        user_entries = self.get_is_fav_attr_entry(user_entries, request)
-        self.set_pagination(user_entries, request)
-
-        user_titles = Title.objects.filter(owner=author).order_by('created_at')
-        self.context['titles'] = user_titles
 
         follow = 0  # can follow
         if (not request.user.is_authenticated):
@@ -343,9 +369,39 @@ class ProfileView(BaseView):
                 follow = 2  # already follower
             except FollowAuthor.DoesNotExist:
                 follow = 0
-
         self.context['follow'] = follow
+
+        query = int(request.GET.get('query', 1))
+        if query == 1:
+            user_entries = Entry.objects.filter(author=author)
+            user_entries = self.get_is_fav_attr_entry(
+                user_entries, request.user).order_by(
+                    '-created_at')
+            self.set_pagination(user_entries, request)
+        elif query == 2:
+            user_titles = Title.objects.filter(
+                owner=author).order_by('created_at')
+            self.set_pagination(user_titles, request)
+        else:
+            follows = FollowAuthor.objects.filter(follow=author)
+            follower_ids = follows.values_list('user_id', flat=True)
+            followers = Author.objects.filter(pk__in=follower_ids)
+            self.set_pagination(followers, request)
+
         self.context['show_title'] = True
+        
+        # ajax request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if query == 1:
+                html = render_to_string(
+                    'components/entries.html', self.context, request=request)
+            elif query == 2:
+                html = render_to_string(
+                    'components/titles.html', self.context, request=request)
+            else:
+                html = render_to_string(
+                    'components/users.html', self.context, request=request)
+            return JsonResponse({'html': html})
         return render(request, 'profile_page.html', self.context)
 
 
@@ -365,7 +421,6 @@ class SignupView(View):
                                 username=author.username,
                                 password=password)
             if user:
-                print(user)
                 login(request, user)
             return redirect('app:index')
         else:
@@ -487,7 +542,7 @@ class NewTitleView(BaseView):
 
         form = TitleForm(request.POST)
         if form.is_valid():
-            text = form.cleaned_data['text']
+            text = form.cleaned_data['title']
             topic = form.cleaned_data['topic']
             entry_content = form.cleaned_data['entry_content']
             title = Title(text=text, topic=topic, owner=request.user)
@@ -500,14 +555,16 @@ class NewTitleView(BaseView):
             return render(request, 'new_title_page.html', {'form': form})
 
     def get(self, request):
+        super().get(request)
         form = TitleForm()
         return render(request, 'new_title_page.html', {'form': form})
 
 
-class TopicView(View):
+class TopicView(BaseView):
     context = {}
 
     def get(self, request, topic_id):
+        super().get(request)
         titles = Title.objects.filter(topic_id=topic_id)
         self.context['titles'] = titles
         return render(request, 'latest_page.html', self.context)
@@ -516,6 +573,7 @@ class TopicView(View):
 class NewEntryView(BaseView):
 
     def get(self, request, title_id):
+        super().get(request)
         title = Title.objects.filter(pk=title_id).first()
         if not title:
             return redirect('app:index')
@@ -559,11 +617,11 @@ class NewEntryView(BaseView):
 class DeleteEntryView(BaseView):
     def post(self, request):
         self.check_and_redirect_to_login(request)
+        super().get(request)
 
         entry_id = request.POST.get('entry_id')
         entry = Entry.objects.filter(pk=entry_id, author=request.user).first()
         if entry:
-            print("entry found")
             entry.delete()
             return JsonResponse({'success': True})
         else:
@@ -574,6 +632,8 @@ class DeleteEntryView(BaseView):
 
 class EntryEditView(BaseView):
     def get(self, request, entry_id):
+        super().get(request)
+
         entry = Entry.objects.filter(pk=entry_id).first()
         if not entry:
             return redirect('app:index')
@@ -606,6 +666,8 @@ class EntryView(BaseView):
     context = {}
 
     def get(self, request, entry_id):
+        super().get(request)
+
         entry = Entry.objects.filter(pk=entry_id)
         if not entry:
             return redirect('app:not-found')
@@ -643,6 +705,7 @@ class SettingsView(BaseView):
 
     def get(self, request):
         self.check_and_redirect_to_login(request)
+        super().get(request)
 
         initial = {
             'random_entry_count': request.user.random_entry_count,
