@@ -30,7 +30,7 @@ class Topic(models.Model):
 
 
 class Title(models.Model):
-    text = models.CharField(max_length=50, validators=[MinLengthValidator(3)])
+    text = models.CharField(max_length=100, validators=[MinLengthValidator(3)])
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Author, null=True, on_delete=models.SET_NULL)
     topic = models.ForeignKey(
