@@ -13,7 +13,7 @@
             console.log(isFollow);
             console.log(titleId);
             $.ajax({
-                url: "{% url 'app:follow-title' %}",  // The URL of your upvote view
+                url: "{% url 'app:followed-title' %}",  // The URL of your upvote view
                 method: 'POST',
                 data: {
                     'title_id': titleId,

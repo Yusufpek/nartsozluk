@@ -94,6 +94,8 @@ class TitleView(BaseView):
         self.context['order_choices'] = ORDER_CHOICES
         return render(request, 'title_page.html', self.context)
 
+
+class FollowedTitleView(BaseView):
     def post(self, request):
         self.check_and_redirect_to_login(request)
 
@@ -117,6 +119,19 @@ class TitleView(BaseView):
             return JsonResponse({'success': False, 'error': str(e)})
 
         return JsonResponse({'success': True})
+
+    def get(self, request):
+        self.check_and_redirect_to_login(request)
+
+        follows = FollowTitle.objects.filter(author=request.user)
+        title_ids = follows.values_list('title_id', flat=True)
+        titles = Title.objects.filter(pk__in=title_ids)
+        print(titles)
+        titles = titles.annotate(entries_count=Count(
+            'entry',
+            filter=Q(entry__created_at__gt=F('followtitle__last_seen'))))
+        self.context['titles'] = titles
+        return render(request, 'latest_page.html', self.context)
 
 
 class FollowView(BaseView):
@@ -249,8 +264,8 @@ class LatestView(View):
         count = Count(
             'entry',
             filter=Q(created_at__day=timezone.now().day))
-        titles = Title.objects.annotate(todays_entries_count=count)
-        self.context['titles'] = titles.order_by('-todays_entries_count')[:25]
+        titles = Title.objects.annotate(entries_count=count)
+        self.context['titles'] = titles.order_by('-entries_count')[:25]
         return render(request, 'latest_page.html', self.context)
 
 
