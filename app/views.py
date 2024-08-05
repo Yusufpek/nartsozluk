@@ -10,7 +10,8 @@ from django.utils import timezone
 from django.views import View
 import random
 
-from .models import Title, Entry, Author, FollowAuthor, Vote, AuthorsFavorites
+from .models import Title, Entry, Author, Vote
+from .models import AuthorsFavorites, FollowTitle, FollowAuthor
 from .forms import LoginForm, SignupForm, TitleForm, EntryForm, SettingsForm
 from .constants import ORDER_CHOICES
 
@@ -26,6 +27,28 @@ class BaseView(View):
         if request.user.is_authenticated:
             self.ENTRY_COUNT = int(request.user.random_entry_count)
 
+    def get_is_fav_attr_entry(self, base_manager, user):
+        if (user.is_authenticated):
+            return base_manager.annotate(
+                is_fav=Case(
+                    When(authorsfavorites__author=user, then=Value(True)),
+                    default=Value(False), output_field=BooleanField()))
+        else:
+            return base_manager
+
+    def get_vote_counts_entry(self, base_manager):
+        return base_manager.annotate(
+            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
+            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
+        )
+
+    def get_fav_counts_entry(self, base_manager):
+        return base_manager.annotate(fav_count=Count('authorsfavorites'))
+
+    def check_and_redirect_to_login(self, request):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+
 
 class HomeView(BaseView):
     def get(self, request):
@@ -35,16 +58,9 @@ class HomeView(BaseView):
         if (pk_max):
             count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
             random_list = random.sample(range(1, pk_max+1), count)
-            if request.user.is_authenticated:
-                entries = Entry.objects.annotate(
-                    is_fav=Case(When(
-                        authorsfavorites__author=request.user,
-                        then=Value(True)),
-                        default=Value(False), output_field=BooleanField())
-                    ).filter(pk__in=random_list).order_by('?')
-            else:
-                entries = Entry.objects.filter(
-                    pk__in=random_list).order_by('?')
+            entries = Entry.objects.filter(pk__in=random_list)
+            entries = self.get_is_fav_attr_entry(entries, request.user)
+            entries = entries.order_by('?')
             self.context["entries"] = entries
         self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
@@ -57,32 +73,57 @@ class TitleView(BaseView):
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
-        if request.user.is_authenticated:
-            title_entries = title_entries.annotate(
-                is_fav=Case(
-                    When(authorsfavorites__author=request.user,
-                         then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField()),
-                up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
-                down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
-            )
+        title_entries = self.get_is_fav_attr_entry(title_entries, request.user)
+        title_entries = self.get_vote_counts_entry(title_entries)
         title_entries = title_entries.order_by('created_at')
         paginator = Paginator(title_entries, self.ENTRY_COUNT)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
+
+        is_follow = False
+        if request.user.is_authenticated:
+            follow_title = FollowTitle.objects.filter(
+                title=title, author=request.user).first()
+            if follow_title:
+                is_follow = True
+                follow_title.save()  # update the last seen
+
         self.context['page_obj'] = page_obj
+        self.context['is_follow'] = is_follow
         self.context['show_title'] = False
         self.context['order_choices'] = ORDER_CHOICES
         return render(request, 'title_page.html', self.context)
 
+    def post(self, request):
+        self.check_and_redirect_to_login(request)
 
-class FollowView(View):
+        title_id = request.POST.get('title_id')
+        user = request.user
+
+        try:
+            title = Title.objects.filter(pk=title_id).first()
+            if not title:  # title check
+                return JsonResponse(
+                    {'success': False, 'error': "there is no title"})
+
+            follow = FollowTitle.objects.filter(
+                title=title, author=user).first()
+
+            if follow:  # is follow check
+                follow.delete()
+            else:
+                FollowTitle(title=title, author=user).save()
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+        return JsonResponse({'success': True})
+
+
+class FollowView(BaseView):
     context = {}
 
     def get(self, request):
-        if (not request.user.is_authenticated):
-            return redirect('app:index')
+        self.check_and_redirect_to_login(request)
 
         follows = FollowAuthor.objects.filter(user=request.user)
         author_ids = follows.values_list('follow_id', flat=True)
@@ -132,17 +173,10 @@ class OrderView(BaseView):
 
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
-        title_entries = Entry.objects.filter(
-            title=title
-        ).annotate(
-            is_fav=Case(
-                When(authorsfavorites__author=request.user, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()),
-            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
-            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
-            fav_count=Count('authorsfavorites')
-        )
+        title_entries = Entry.objects.filter(title=title)
+        title_entries = self.get_is_fav_attr_entry(title_entries, request.user)
+        title_entries = self.get_vote_counts_entry(title_entries)
+        title_entries = self.get_fav_counts_entry(title_entries)
 
         if (query == 1):  # order by vote
             title_entries = title_entries.annotate(
@@ -188,17 +222,15 @@ class TodayView(BaseView):
         return render(request, 'today_page.html', self.context)
 
 
-class LDMVViews(View):
+class LDMVViews(BaseView):
     context = {}
 
     def get(self, request):
         LDMV_COUNT = 5
         yesterday = (timezone.now() - timezone.timedelta(days=1)).day
-        entries = Entry.objects.filter(created_at__day=yesterday).annotate(
-            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
-            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
-            fav_count=Count('authorsfavorites'),
-        )
+        entries = Entry.objects.filter(created_at__day=yesterday)
+        entries = self.get_vote_counts_entry(entries)
+        entries = self.get_fav_counts_entry(entries)
         entries = entries.annotate(
             vote_point=(
                 (F('up_votes_count') * 5) +
@@ -249,9 +281,9 @@ class ProfileView(View):
             follow = 1  # same person
         else:
             try:
-                followAuthor = FollowAuthor.objects.get(
+                follow_author = FollowAuthor.objects.get(
                     user=request.user, follow=author)
-                self.context['follow_date'] = followAuthor.follow_date
+                self.context['follow_date'] = follow_author.follow_date
                 follow = 2  # already follower
             except FollowAuthor.DoesNotExist:
                 follow = 0
@@ -390,12 +422,11 @@ class FavEntryView(View):
         return JsonResponse({'success': True, 'is_favorite': is_favorite})
 
 
-class NewTitleView(View):
+class NewTitleView(BaseView):
     form = TitleForm()
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
+        self.check_and_redirect_to_login(request)
 
         form = TitleForm(request.POST)
         if form.is_valid():
@@ -425,7 +456,7 @@ class TopicView(View):
         return render(request, 'latest_page.html', self.context)
 
 
-class NewEntryView(View):
+class NewEntryView(BaseView):
 
     def get(self, request, title_id):
         title = Title.objects.filter(pk=title_id).first()
@@ -439,8 +470,7 @@ class NewEntryView(View):
             })
 
     def post(self, request, title_id):
-        if not request.user.is_authenticated:  # check user
-            return redirect('app:index')
+        self.check_and_redirect_to_login(request)
 
         title = Title.objects.filter(pk=title_id).first()  # check title
         if not title:
@@ -469,10 +499,9 @@ class NewEntryView(View):
                     })
 
 
-class DeleteEntryView(View):
+class DeleteEntryView(BaseView):
     def post(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:index')
+        self.check_and_redirect_to_login(request)
 
         entry_id = request.POST.get('entry_id')
         entry = Entry.objects.filter(pk=entry_id, author=request.user).first()
@@ -486,7 +515,7 @@ class DeleteEntryView(View):
                 'error': 'Entry does not exist, or the author is not valid'})
 
 
-class EntryEditView(View):
+class EntryEditView(BaseView):
     def get(self, request, entry_id):
         entry = Entry.objects.filter(pk=entry_id).first()
         if not entry:
@@ -497,8 +526,7 @@ class EntryEditView(View):
             'form': form, 'title': entry.title})
 
     def post(self, request, entry_id):
-        if not request.user.is_authenticated:  # check user
-            return redirect('app:index')
+        self.check_and_redirect_to_login(request)
 
         form = EntryForm(request.POST)
         if form.is_valid():
@@ -517,22 +545,15 @@ class EntryEditView(View):
                       {'form': form, 'title': entry.title})
 
 
-class EntryView(View):
+class EntryView(BaseView):
     context = {}
 
     def get(self, request, entry_id):
         entry = Entry.objects.filter(pk=entry_id)
         if not entry:
             return redirect('app:not-found')
-        if request.user.is_authenticated:
-            entry = entry.annotate(
-                    is_fav=Case(When(
-                        authorsfavorites__author=request.user,
-                        then=Value(True)),
-                        default=Value(False), output_field=BooleanField()),
-                    up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
-                    down_votes_count=Count('vote', filter=Q(vote__is_up=False))
-                )
+        entry = self.get_is_fav_attr_entry(entry, request.user)
+        entry = self.get_vote_counts_entry(entry)
         self.context["entries"] = [entry.first()]
         self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
@@ -545,13 +566,12 @@ class NotFoundView(View):
         return render(request, 'not_found_page.html', self.context)
 
 
-class SettingsView(View):
+class SettingsView(BaseView):
     context = {}
     form = SettingsForm()
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
+        self.check_and_redirect_to_login(request)
         form = SettingsForm(request.POST, request.FILES)
         if form.is_valid():
             image = form.cleaned_data['profile_image']
@@ -565,8 +585,8 @@ class SettingsView(View):
         return render(request, 'settings_page.html', {'form': form})
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
+        self.check_and_redirect_to_login(request)
+
         initial = {
             'random_entry_count': request.user.random_entry_count,
             'title_entry_count': request.user.title_entry_count,
