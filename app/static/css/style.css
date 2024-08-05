@@ -461,6 +461,10 @@ mark,
   max-width: 100%;
   height: auto; }
 
+.img-entry{
+  width: 3%;
+}
+
 .figure {
   display: inline-block; }
 
@@ -4620,6 +4624,16 @@ button.bg-dark:focus {
 
 .rounded-circle {
   border-radius: 50% !important; }
+
+.rounded-circle-small {
+  border-radius: 50% !important;
+  width: 64px;
+}
+
+.rounded-circle-xsmall {
+  border-radius: 50% !important;
+  width: 32px;
+}
 
 .rounded-0 {
   border-radius: 0 !important; }
