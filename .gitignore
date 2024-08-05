@@ -137,6 +137,6 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
-000*.py
+00*.py
 
 static/
