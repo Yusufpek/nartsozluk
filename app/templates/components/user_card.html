@@ -1,0 +1,13 @@
+<a href="{% url 'app:profile' user.id %}" class='nav-link link-dark'>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">
+                    <small>
+                        <img class='rounded-circle-small' src="{{user.profile_image.url}}"/>
+                    </small> 
+                    {{user.username}}
+                </div>
+            </h5>
+        </div>
+    </div>
+</a>

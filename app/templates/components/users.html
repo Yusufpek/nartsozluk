@@ -1,0 +1,19 @@
+{% load static %}
+<div class="p-5">
+    {% comment %} entries with entries object {% endcomment %}
+    {% if entries %}
+        {% for user in entries %}
+            {% include 'components/user_card.html' %}
+        {% endfor %}
+    {% else %}
+        {% if page_obj.object_list %}
+            {% for user in page_obj.object_list %}
+                {% include 'components/user_card.html' %}
+            {% endfor %}
+        {% else %}
+            <div>
+                <h5> No user :/</h5>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
