@@ -4,6 +4,41 @@
 
 {% block content %}
 
+<script>
+    $(document).ready(function() {
+        $('.follow-button').click(function() {
+            const titleId = $(this).data('title-id');
+            const isFollow = $(this).data('is-follow');
+            console.log('click');
+            console.log(isFollow);
+            console.log(titleId);
+            $.ajax({
+                url: "{% url 'app:follow-title' %}",  // The URL of your upvote view
+                method: 'POST',
+                data: {
+                    'title_id': titleId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log("success")
+                        if(!isFollow){
+                            $(`.follow-button`).text("Follow Title");
+                        }else{
+                            $(`.follow-button`).text("Unfollow Title");
+                        }
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(response) {
+                    // Handle the error
+                    alert('Error following title.');
+                }
+            });
+        });
+    });
+</script>
 
     <div class="d-flex flex-column pt-4 justify-content-center align-items-center">
         <h2><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h2>
@@ -12,7 +47,7 @@
         {% endif %}
         <div class="d-flex flex-row align-items-center">
             {% if request.user.is_authenticated %}
-                <h6 class='mx-2 my-2'><a href="{% url 'app:new-entry' title.id %}" class='link-secondary'>Ekle</a></h6>
+                <h6 class='mx-2 my-2'><a href="{% url 'app:new-entry' title.id %}" class='link-secondary'>Add Entry</a></h6>
             {% endif %}
             <div class="btn-group">
                 <button id="btnGroupDrop1" type="button" class="btn link-secondary dropdown-toggle" data-toggle="dropdown">
@@ -28,6 +63,15 @@
                     {% endfor %}
                 </div>
             </div>  
+            {% if request.user.is_authenticated %}
+            <button type="button" class="btn link-secondary follow-button"  data-title-id="{{title.id}}" data-is-follow="{{is_follow}}">
+                {% if is_follow %}
+                    Unfollow Title
+                {% else %}
+                    Follow Title
+                {% endif %}
+            </button>
+            {% endif %}
         </div>
     </div>
 

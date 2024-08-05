@@ -77,3 +77,9 @@ class FollowAuthor(models.Model):
 
     class Meta:
         unique_together = ('user', 'follow')  # for no duplicate
+
+
+class FollowTitle(models.Model):
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    last_seen = models.DateTimeField(auto_now=True)

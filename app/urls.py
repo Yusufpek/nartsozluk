@@ -31,6 +31,7 @@ urlpatterns = [
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     # title pages
+    path('<follow-title', views.TitleView.as_view(), name="follow-title"),
     path('<int:title_id>/title', views.TitleView.as_view(), name="title"),
     path('<int:title_id>/order/<int:query>',
          views.OrderView.as_view(), name="order"),
