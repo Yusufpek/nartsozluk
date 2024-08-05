@@ -1,13 +1,26 @@
 <div class="p-5">
-    {% for title in titles %}
-    <div class="card text-white bg-dark mb-3" style="max-width: 48rem;">
-        <div class="card-body">
-            <h5 class="card-title">
-                <a href="{% url 'app:title' title.id %}" class='link-light'>{{title.text}}</a></h5>
-            <div class="card-footer d-flex justify-content-between text-muted">
-                <div> {{title.created_at}} </div>
+    {% if titles %}
+        {% for title in titles %}
+        <div class="card text-white bg-dark mb-3" style="max-width: 48rem;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'app:title' title.id %}" class='link-light'>{{title.text}}</a></h5>
+                <div class="card-footer d-flex justify-content-between text-muted">
+                    <div> {{title.created_at}} </div>
+                </div>
             </div>
         </div>
-    </div>
-    {% endfor %}
+        {% endfor %}
+    {% else %}
+        {% if page_obj.object_list %}
+            {% for title in page_obj.object_list %}
+                {% include 'components/title_card.html' %}
+            {% endfor %}
+        {% else %}
+            <div>
+                <h5> No followed title :/</h5>
+            </div>
+        {% endif %}
+
+    {% endif %}
 </div>

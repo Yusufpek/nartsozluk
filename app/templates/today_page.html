@@ -7,47 +7,72 @@
 <div class="d-flex flex-column pt-2 pb-4 justify-content-center align-items-center">
     <h3 class="">{% now 'D-M-Y' %}</h3>
 </div>
-<div class='d-flex flex-row p-2'>
-    <div class='col'>
-        {% if titles %}
-            <h4>Today's Titles</h4>
-             {% include 'components/titles.html' %}
-        {% else %}
-            <div>
-                <h5> No title :/</h5>
-            </div>
-        {% endif %}
-    </div>
-    
-    <div class="vr"></div>
-    
-    <div class="px-1 w-50">
-        <h4 class="px-5">Today's Entries</h4>
-        {% include 'components/entries.html' %}
-        {% if page_obj %}
-        <span class="step-links">
-            {% if page_obj.object_list %}
+
+<script>
+    $(document).ready(function() {
+        $('.today-link').click(function(event) {
+            event.preventDefault();
+            const query = $(this).attr('id') === 'today-entries' ? 1 : 2;
+            console.log(query)
+            $.ajax({
+                url: "{% url 'app:today' %}",
+                method: 'GET',
+                data: {'query': query},
+                success: function(response) {
+                    // update entries
+                    $('#container-area').html(response.html);
+                    // reset colors
+                    $('.today-link').removeClass('link-warning').removeClass('link-secondary');
+                    if (query === 1) {
+                        $('#today-entries').addClass('link-warning');
+                        $('#today-titles').addClass('link-secondary');
+                    } else {
+                        $('#today-titles').addClass('link-warning');
+                        $('#today-entries').addClass('link-secondary');
+                    }
+                },
+                error: function(response) {
+                    alert('Error fetching entries.');
+                }
+            });
+        });
+    });
+</script>
+
+<div class='d-flex flex-row justify-content-around align-items-center'>
+    <h5><a href='#' id="today-entries"  class='today-link link-warning'>Today's Entries</a></h5>
+    <h5><a href='#' id="today-titles" class='today-link link-secondary'>Today's Titles</a></h5>
+</div>
+
+<hr/>
+
+
+{% if page_obj %}
+<span class="step-links">
+        {% if page_obj.object_list %}
+            <div id='container-area'>
                 {% include 'components/entries.html' %}
+            </div>
                 <div class='px-5'>
-                <div class='d-flex flex-row justify-content-end align-items-center'>
-                    {% if page_obj.has_previous %}
+                    <div class='d-flex flex-row justify-content-end align-items-center'>
+                        {% if page_obj.has_previous %}
                         <a class="btn btn-warning mx-1" href="?page=1">&laquo; first</a>
                         <a class="btn btn-warning mx-1" href="?page={{ page_obj.previous_page_number }}">previous</a>
-                    {% endif %}
-                    
-                    <span class="current px-1">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                    </span>
-                    
-                    {% if page_obj.has_next %}
+                        {% endif %}
+                        
+                        <span class="current px-1">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+                        
+                        {% if page_obj.has_next %}
                         <a class="btn btn-warning mx-1" href="?page={{ page_obj.next_page_number }}">next</a>
                         <a class="btn btn-warning mx-1" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-                    {% endif %}
-                </div>
+                        {% endif %}
+                    </div>
                 </div>                
+                {% endif %}
+            </span>
             {% endif %}
-        </span>
-        {% endif %}
-    </div>    
-    {% endblock %}
-</div>
+        </div>
+    </div> 
+{% endblock %}

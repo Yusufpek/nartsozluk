@@ -18,9 +18,9 @@
                 {% endif %}
             </h6>
             <small class="text-muted ml-3">
-                {{entry.created_at|date:"M d, Y - h:m" }}
+                {{entry.created_at|date:"M d, Y - h:m a" }}
                 {% if entry.is_edited %}
-                ~ {{entry.updated_at|date:"M d, Y - h:m" }}
+                ~ {{entry.updated_at|date:"M d, Y - h:m a" }}
                 {% endif %}
             </small>
             {% if request.user.is_authenticated %}
