@@ -250,15 +250,28 @@ class TodayView(BaseView):
         self.get_entry_count(request)
 
         titles = Title.objects.filter(created_at__day=timezone.now().day)
-        self.context['titles'] = titles.order_by('-created_at')
+        titles = titles.order_by('-created_at')
         entries = Entry.objects.filter(
             created_at__day=timezone.now().day).order_by('-created_at')
 
-        entries = self.get_is_fav_attr_entry(entries, request.user)
-        self.set_pagination(entries, request)
+        query = int(request.GET.get('query', 1))
+        print(query)
+        if query == 1:
+            entries = self.get_is_fav_attr_entry(entries, request.user)
+            self.set_pagination(entries, request)
+        else:
+            self.set_pagination(titles, request)
 
-        self.context['entries'] = entries
         self.context['show_title'] = True
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if query == 1:
+                html = render_to_string(
+                    'components/entries.html', self.context, request=request)
+            else:
+                html = render_to_string(
+                    'components/titles.html', self.context, request=request)
+            return JsonResponse({'html': html})
         return render(request, 'today_page.html', self.context)
 
 
