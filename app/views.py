@@ -84,6 +84,7 @@ class BaseView(View):
         self.set_pagination(title_entries, request)
 
         self.context['show_title'] = False
+        return title_entries
 
 
 class HomeView(BaseView):
@@ -247,8 +248,8 @@ class OrderView(BaseView):
         title = Title.objects.get(pk=title_id)
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
-        title_entries = self.get_entries_for_title_page(title_entries, request)
         title_entries = self.get_fav_counts_entry(title_entries)
+        title_entries = self.set_entries_for_title_page(title_entries, request)
 
         if (query == 1):  # order by vote
             title_entries = title_entries.annotate(
@@ -338,7 +339,7 @@ class LatestView(BaseView):
 class ProfileView(BaseView):
     context = {}
 
-    def get(self, request, author_id):
+    def get(self, request, author_id, query=0):
         super().get(request)
 
         # distinct=True meaning is each unique row is only counted once.
@@ -376,7 +377,8 @@ class ProfileView(BaseView):
                 follow = 0
         self.context['follow'] = follow
 
-        query = int(request.GET.get('query', 0))
+        print(query)
+        query = int(query)
         if query == 1:
             user_entries = Entry.objects.filter(author=author)
             user_entries = self.get_is_fav_attr_entry(
@@ -387,26 +389,17 @@ class ProfileView(BaseView):
             user_titles = Title.objects.filter(
                 owner=author).order_by('created_at')
             self.set_pagination(user_titles, request)
-        else:
+        elif query == 3:
             follows = FollowAuthor.objects.filter(follow=author)
             follower_ids = follows.values_list('user_id', flat=True)
             followers = Author.objects.filter(pk__in=follower_ids)
             self.set_pagination(followers, request)
-
+        else:
+            self.context['page_obj'] = None
+        print(self.context['page_obj'])
         self.context['show_title'] = True
+        self.context['query'] = query
 
-        # ajax request
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            if query == 1:
-                html = render_to_string(
-                    'components/entries.html', self.context, request=request)
-            elif query == 2:
-                html = render_to_string(
-                    'components/titles.html', self.context, request=request)
-            else:
-                html = render_to_string(
-                    'components/users.html', self.context, request=request)
-            return JsonResponse({'html': html})
         return render(request, 'profile_page.html', self.context)
 
 
