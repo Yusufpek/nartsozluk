@@ -7613,7 +7613,8 @@ sub {
     justify-content: center;
   }
     .nav-header .brand-logo a {
-      padding: 1.607rem 1.8125rem;
+      margin: 1rem;
+      background-color: white;
       display: block; }
       .nav-header .brand-logo a i {
         font-size: 1.375rem; }
@@ -14029,7 +14030,7 @@ html[dir="rtl"] [direction="rtl"][data-sidebar-style="compact"]:not([data-layout
   padding-right: 15rem; }
 
 [data-nav-headerbg="color_1"] .nav-header {
-  background-color: #7571f9; }
+  background-color: #eb6c23 ; }
 
 [data-nav-headerbg="color_2"] .nav-header {
   background-color: #27394F !important; }

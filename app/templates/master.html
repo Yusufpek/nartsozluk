@@ -62,14 +62,16 @@
             Nav header start
         ***********************************-->
         <div class="nav-header">
-            <div class="brand-logo">
-                <a href="{% url 'app:index' %}">
-                    <b class="logo-abbr"><img src="{% static 'images/logo.png' %}" alt=""></b>
-                    <span class="logo-compact"><img src="{% static 'images/logo-h.png' %}" alt=""></span>
-                    <span class="brand-title">
-                        <img src="{% static 'images/logo-h.png' %}" class='w-75' alt=''>
-                    </span>
-                </a>
+            <div class='mb-5'>
+                <div class="brand-logo">
+                    <a href="{% url 'app:index' %}">
+                        <b class="logo-abbr"><img src="{% static 'images/logo.png' %}" alt=""></b>
+                        <span class="logo-compact mb-5"><img src="{% static 'images/logo.png' %}" alt=""></span>
+                        <span class="brand-title">
+                            <img src="{% static 'images/logo.png' %}" class='w-75 mb-3' alt=''>
+                        </span>
+                    </a>
+                </div>
             </div>
         </div>
 
