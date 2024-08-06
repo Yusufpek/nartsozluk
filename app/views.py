@@ -696,7 +696,8 @@ class SettingsView(BaseView):
             image = form.cleaned_data['profile_image']
             title_entry_count = form.cleaned_data['title_entry_count']
             random_entry_count = form.cleaned_data['random_entry_count']
-            request.user.profile_image = image
+            if (request.user.profile_image != image and image != 'default.jpg'):
+                request.user.profile_image = image
             request.user.title_entry_count = title_entry_count
             request.user.random_entry_count = random_entry_count
             request.user.save()
