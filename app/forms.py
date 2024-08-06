@@ -27,14 +27,16 @@ class LoginForm(forms.Form):
 
 
 class TitleForm(forms.Form):
-    title = forms.CharField(max_length=100)
+    title = forms.CharField(max_length=100, label='title (max 100 character)')
     topic = forms.ChoiceField()
     entry_content = forms.CharField(
+        label='first entry content',
         widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}),)
 
     def __init__(self, *args, **kwargs):
         super(TitleForm, self).__init__(*args, **kwargs)
         self.fields['topic'] = forms.ModelChoiceField(
+            label='topic',
             queryset=Topic.objects.all())
         self.fields['entry_content'].required = False
 
@@ -64,6 +66,7 @@ class EntryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(EntryForm, self).__init__(*args, **kwargs)
         self.fields["content"].required = False
+        self.fields["content"].label = "content"
 
     def clean(self):  # avoid empty entries
         content = self.cleaned_data.get('content')
