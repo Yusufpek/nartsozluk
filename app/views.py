@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.views import View
 import random
 
-from .models import Title, Entry, Author, Vote
+from .models import Title, Entry, Author, Vote, Topic
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
 from .forms import LoginForm, SignupForm, TitleForm, EntryForm, SettingsForm
 from .constants import ORDER_CHOICES
@@ -36,6 +36,8 @@ class BaseView(View):
             follow_title = follow_title.order_by('last_seen')[:5]
             self.context['last_seen_titles'] = follow_title
             self.context['last_seen_count'] = follow_title.count()
+        # topics
+        self.context['topics'] = Topic.objects.all()
 
     def get_entry_count(self, request, is_title=True):
         self.context['entries'] = None
@@ -568,9 +570,14 @@ class TopicView(BaseView):
 
     def get(self, request, topic_id):
         super().get(request)
-        titles = Title.objects.filter(topic_id=topic_id)
+        topic = Topic.objects.filter(pk=topic_id).first()
+        if not topic:
+            return redirect('app:not-found')
+
+        titles = Title.objects.filter(topic=topic)
+        self.context['topic'] = topic
         self.context['titles'] = titles
-        return render(request, 'latest_page.html', self.context)
+        return render(request, 'topic_title_page.html', self.context)
 
 
 class NewEntryView(BaseView):

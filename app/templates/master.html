@@ -232,6 +232,19 @@
                             <span class="nav-text">today</span>
                         </a>
                     </li>
+                    
+                    <li class="mega-menu mega-menu-sm">
+                        <a class="has-arrow nav-link" href="javascript:void()" aria-expanded="false">
+                            <i class="bi bi-bar-chart-steps"></i>
+                            <span class="nav-text">topics</span>                        
+                        </a>
+
+                        <ul aria-expanded="false">
+                            {% for topic in topics %}
+                            <li><a href="{% url 'app:topic' topic.id %}">{{topic}}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
 
                     <li class="nav-item">
                         <a class="nav-link link-light" href="{% url 'app:ldmv' %}">

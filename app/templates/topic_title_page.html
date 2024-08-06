@@ -1,0 +1,25 @@
+{% extends "master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="d-flex flex-column pt-2 pb-4 justify-content-center align-items-center">
+    <h3 class="">{{topic}} titles</h3>
+    <h6 class="">created at {{topic.created_at}}</h6>
+</div>
+
+        {% if titles %}
+            <div class="p-5">
+                {% for title in titles %}
+                {% include 'components/title_card.html' %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div>
+                <h5> No title :/</h5>
+            </div>
+        {% endif %}
+
+
+{% endblock %}
