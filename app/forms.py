@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django_ckeditor_5.widgets import CKEditor5Widget
 
 from .models import Author, Topic, Title, Entry
+from .utils import format_entry_urls, content_is_empty
 
 
 class SignupForm(UserCreationForm):
@@ -26,7 +27,7 @@ class LoginForm(forms.Form):
 
 
 class TitleForm(forms.Form):
-    text = forms.CharField(max_length=50)
+    title = forms.CharField(max_length=100)
     topic = forms.ChoiceField()
     entry_content = forms.CharField(
         widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}),)
@@ -38,13 +39,17 @@ class TitleForm(forms.Form):
         self.fields['entry_content'].required = False
 
     def clean(self):
-        text = self.cleaned_data.get('text')
+        text = self.cleaned_data.get('title')
         entry_content = self.cleaned_data.get('entry_content')
         entry_content = entry_content.split('<p>')[1].split('</p>')[0]
         if Title.objects.filter(text__contains=text).exists():
             raise ValidationError("this title already added")
-        elif entry_content == '&nbsp;':
-            raise ValidationError("entry content can not be empty")
+        elif entry_content:
+            if content_is_empty(entry_content):
+                raise ValidationError("entry content can not be empty")
+            else:
+                self.cleaned_data['entry_content'] = format_entry_urls(
+                    entry_content)
         return self.cleaned_data
 
 
@@ -62,11 +67,12 @@ class EntryForm(forms.ModelForm):
 
     def clean(self):  # avoid empty entries
         content = self.cleaned_data.get('content')
+        raw_content = content
         if content:
-            content = content.replace('&nbsp;', '').replace(
-                '<p>', '').replace('</p>', '')
-            if content.replace(' ', '') == '':
+            if content_is_empty(content):
                 raise ValidationError("entry content can not be empty")
+            else:
+                self.cleaned_data['content'] = format_entry_urls(raw_content)
         return self.cleaned_data
 
 

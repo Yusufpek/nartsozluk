@@ -11,3 +11,5 @@ ORDER_CHOICES = (
     "Created At - First",
     "Created At - Last",
 )
+
+URL = '127.0.0.1:8000/'
