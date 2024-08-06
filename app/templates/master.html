@@ -115,7 +115,7 @@
                             </a>
                             <div class="drop-down animated fadeIn dropdown-menu">
                                 <div class="dropdown-content-heading d-flex justify-content-between">
-                                    <span class="">{{last_seen_count}} Last Seen Titles</span>  
+                                    <span class="">{{last_seen_count}} Last Seen Followed Titles</span>  
                                     <a href="javascript:void()" class="d-inline-block">
                                         <span class="badge badge-pill gradient-1">3</span>
                                     </a>
@@ -124,8 +124,7 @@
                                     <ul>
                                         {% for last_seen in last_seen_titles%}
                                         <li class="notification-unread">
-                                            <a href="javascript:void()">
-                                                <img class="float-left mr-3 avatar-img" src="{% static 'images/avatar/1.jpg' %}" alt="">
+                                            <a href="{% url 'app:title' last_seen.title.id%}">
                                                 <div class="notification-content">
                                                     <div class="notification-heading">{{last_seen.title}}</div>
                                                     <div class="notification-timestamp">{{last_seen.last_seen}}</div>
