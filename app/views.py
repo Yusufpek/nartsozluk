@@ -33,7 +33,7 @@ class BaseView(View):
             self.get_entry_count(request)
             # last favs
             follow_title = FollowTitle.objects.filter(author=request.user)
-            follow_title = follow_title.order_by('last_seen')[:5]
+            follow_title = follow_title.order_by('-last_seen')[:5]
             self.context['last_seen_titles'] = follow_title
             self.context['last_seen_count'] = follow_title.count()
         # topics
