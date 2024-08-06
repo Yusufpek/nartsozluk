@@ -693,11 +693,11 @@ class SettingsView(BaseView):
         self.check_and_redirect_to_login(request)
         form = SettingsForm(request.POST, request.FILES)
         if form.is_valid():
-            image = form.cleaned_data['profile_image']
+            img = form.cleaned_data['profile_image']
             title_entry_count = form.cleaned_data['title_entry_count']
             random_entry_count = form.cleaned_data['random_entry_count']
-            if (request.user.profile_image != image and image != 'default.jpg'):
-                request.user.profile_image = image
+            if (request.user.profile_image != img and img != 'default.jpg'):
+                request.user.profile_image = img
             request.user.title_entry_count = title_entry_count
             request.user.random_entry_count = random_entry_count
             request.user.save()
