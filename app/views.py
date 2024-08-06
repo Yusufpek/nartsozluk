@@ -105,7 +105,10 @@ class TitleView(BaseView):
     def get(self, request, title_id):
         super().get(request)
 
-        title = Title.objects.get(pk=title_id)
+        title = Title.objects.filter(pk=title_id).first()
+        if not title:
+            return redirect('app:not-found')
+
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
         title_entries = self.set_entries_for_title_page(title_entries, request)
