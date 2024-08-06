@@ -719,3 +719,19 @@ class SettingsView(BaseView):
         form = SettingsForm(initial=initial)
         self.context['form'] = form
         return render(request, 'settings_page.html', self.context)
+
+
+class SearchView(View):
+    def get(self, request):
+        query = request.GET.get('query')
+        result_data = []
+        if query:
+            titles = Title.objects.filter(text__startswith=query)
+            for title in titles:
+                result_data.append(
+                    {
+                        'id': title.id,
+                        'text': title.text
+                    }
+                )
+        return JsonResponse({'status': True, 'data': result_data})

@@ -46,6 +46,6 @@ urlpatterns = [
          views.ProfileView.as_view(), name="profile"),
     path('settings/',
          views.SettingsView.as_view(), name='settings'),
-
+    path('search', views.SearchView.as_view(), name='search'),
     path('not-found', views.NotFoundView.as_view(), name='not-found')
 ]
