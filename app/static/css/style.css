@@ -7613,7 +7613,7 @@ sub {
     justify-content: center;
   }
     .nav-header .brand-logo a {
-      margin: 1rem;
+      margin: 0.5rem;
       background-color: white;
       display: block; }
       .nav-header .brand-logo a i {
