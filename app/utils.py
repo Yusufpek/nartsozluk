@@ -26,7 +26,7 @@ def format_entry_urls(content):
             formatted_content = formatted_content.replace(
                 '>' + showing_text + '<', new_text)
     return formatted_content
-
+    
 
 def content_is_empty(content):
     content = content.replace('&nbsp;', '').replace(
