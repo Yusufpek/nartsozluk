@@ -371,7 +371,7 @@ class ProfileView(BaseView):
                 follow = 0
         self.context['follow'] = follow
 
-        query = int(request.GET.get('query', 1))
+        query = int(request.GET.get('query', 0))
         if query == 1:
             user_entries = Entry.objects.filter(author=author)
             user_entries = self.get_is_fav_attr_entry(

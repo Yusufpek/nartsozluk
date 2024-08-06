@@ -1,8 +1,8 @@
 {% load static %}
 <div class="p-5">
     {% comment %} entries with entries object {% endcomment %}
-    {% if entries %}
-        {% for user in entries %}
+    {% if users %}
+        {% for user in users %}
             {% include 'components/user_card.html' %}
         {% endfor %}
     {% else %}

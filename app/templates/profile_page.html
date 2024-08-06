@@ -21,6 +21,7 @@
                 method: 'GET',
                 data: {'query': query},
                 success: function(response) {
+                    $('#step-links').removeClass('d-none')
                     // update entries
                     $('#container-area').html(response.html);
                     // reset colors
@@ -123,7 +124,7 @@
 
 
 {% if page_obj %}
-    <span class="step-links">
+    <span id='step-links' class="step-links d-none">
         <h5 id='title-area'></h5>
             {% if page_obj.object_list %}
                 <div id='container-area'>
