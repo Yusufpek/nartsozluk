@@ -1,4 +1,5 @@
 from .constants import URL
+from .models import Title
 
 
 def format_entry_urls(content):
@@ -20,8 +21,13 @@ def format_entry_urls(content):
                 print("entry")
                 new_text = ">(bkz: entry)<"
             elif showing_text.__contains__("/title"):
+                id = showing_text.replace(URL, '').split('/')[0]
+                title = Title.objects.filter(pk=int(id)).first()
                 print("title")
-                new_text = ">(bkz: title)<"
+                if title:
+                    new_text = ">(bkz: {})<".format(title.text)
+                else:
+                    new_text = ">(bkz: title)<"
         if new_text:
             formatted_content = formatted_content.replace(
                 '>' + showing_text + '<', new_text)
