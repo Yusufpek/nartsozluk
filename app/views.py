@@ -129,6 +129,18 @@ class TitleView(BaseView):
         return render(request, 'title_page.html', self.context)
 
 
+class LatestTitleView(TitleView):
+    def get(self, request, title_id):
+        super().get(request, title_id)
+        print(self.context)
+        title = self.context['title']
+        title_entries = Entry.objects.filter(
+            title=title, created_at__day=timezone.now().day)
+        self.set_entries_for_title_page(title_entries, request)
+
+        return render(request, 'title_page.html', self.context)
+
+
 class FollowedTitleView(BaseView):
     def post(self, request):
         self.check_and_redirect_to_login(request)
@@ -163,7 +175,8 @@ class FollowedTitleView(BaseView):
         titles = Title.objects.filter(pk__in=title_ids)
         titles = titles.annotate(entries_count=Count(
             'entry',
-            filter=Q(entry__created_at__gt=F('followtitle__last_seen')),
+            filter=Q(entry__created_at__gt=F('followtitle__last_seen')) &
+            Q(followtitle__author=request.user),
             distinct=True))
         self.context['titles'] = titles.order_by('-entries_count')
         return render(request, 'followed_titles_page.html', self.context)
@@ -171,19 +184,20 @@ class FollowedTitleView(BaseView):
 
 class FollowedTitleEntries(BaseView):
     def get(self, request, title_id):
-        self.check_and_redirect_to_login(request)
         super().get(request)
+        self.check_and_redirect_to_login(request)
 
         title = Title.objects.filter(pk=title_id).first()
         follow = FollowTitle.objects.filter(
             title=title, author=request.user).first()
-        if title:
+        if title and follow:
             self.context['title'] = title
             entries = Entry.objects.filter(
                 title=title, created_at__gt=follow.last_seen
                 ).order_by('-created_at')
+            print(entries.count())
             follow.save()  # update last seen
-            if len(entries) > 0:
+            if entries.exists():
                 self.set_entries_for_title_page(entries, request)
                 return render(request, 'title_page.html', self.context)
             return redirect('app:title', title_id)  # no entry show all
@@ -323,8 +337,6 @@ class LDMVViews(BaseView):
 
 # pagination
 class LatestView(BaseView):
-    context = {}
-
     def get(self, request):
         super().get(request)
 
@@ -332,13 +344,12 @@ class LatestView(BaseView):
             'entry',
             filter=Q(entry__created_at__day=timezone.now().day))
         titles = Title.objects.annotate(entries_count=count)
-        self.context['titles'] = titles.order_by('-entries_count')[:25]
+        titles = titles.order_by('-entries_count')[:25]
+        self.set_pagination(titles, request)
         return render(request, 'latest_page.html', self.context)
 
 
 class ProfileView(BaseView):
-    context = {}
-
     def get(self, request, author_id, query=0):
         super().get(request)
 
