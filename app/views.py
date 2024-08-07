@@ -135,7 +135,6 @@ class TitleView(BaseView):
 class LatestTitleView(TitleView):
     def get(self, request, title_id):
         super().get(request, title_id)
-        print(self.context)
         title = self.context['title']
         title_entries = Entry.objects.filter(
             title=title, created_at__day=timezone.now().day)
@@ -198,7 +197,6 @@ class FollowedTitleEntries(BaseView):
             entries = Entry.objects.filter(
                 title=title, created_at__gt=follow.last_seen
                 ).order_by('-created_at')
-            print(entries.count())
             follow.save()  # update last seen
             if entries.exists():
                 self.set_entries_for_title_page(entries, request)
@@ -391,7 +389,6 @@ class ProfileView(BaseView):
                 follow = 0
         self.context['follow'] = follow
 
-        print(query)
         query = int(query)
         if query == 1:
             user_entries = Entry.objects.filter(author=author)
@@ -410,7 +407,6 @@ class ProfileView(BaseView):
             self.set_pagination(followers, request)
         else:
             self.context['page_obj'] = None
-        print(self.context['page_obj'])
         self.context['show_title'] = True
         self.context['query'] = query
 
