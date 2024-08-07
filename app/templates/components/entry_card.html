@@ -62,6 +62,8 @@
                                         <i class="bi bi-pencil"> edit entry</i>
                                     </a>
                                 </button>
+                            {% endif %}
+                            {% if request.user == entry.author or request.user.is_staff %}
                                 <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button trash" data-entry-id="{{ entry.id }}" style="color: initial;">
                                     <i class="bi bi-trash"> delete entry</i>
                                 </button>

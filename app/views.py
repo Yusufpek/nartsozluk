@@ -637,7 +637,11 @@ class DeleteEntryView(BaseView):
         super().get(request)
 
         entry_id = request.POST.get('entry_id')
-        entry = Entry.objects.filter(pk=entry_id, author=request.user).first()
+        if request.user.is_staff:
+            entry = Entry.objects.filter(pk=entry_id).first()
+        else:
+            entry = Entry.objects.filter(
+                pk=entry_id, author=request.user).first()
         if entry:
             entry.delete()
             return JsonResponse({'success': True})
