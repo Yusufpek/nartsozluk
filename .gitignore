@@ -140,3 +140,4 @@ GitHub.sublime-settings
 00*.py
 
 /static/
+data/
