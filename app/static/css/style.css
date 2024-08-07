@@ -4624,11 +4624,13 @@ button.bg-dark:focus {
 .rounded-circle-small {
   border-radius: 50% !important;
   width: 64px;
+  height: 64px;
 }
 
 .rounded-circle-xsmall {
   border-radius: 50% !important;
   width: 32px;
+  height: 32px;
 }
 
 .rounded-0 {
@@ -11336,7 +11338,7 @@ table.dataTable thead .sorting::after {
   margin-bottom: 30px;
   border: 0px;
   border-radius: 0.625rem;
-  box-shadow: 6px 11px 41px -28px #a99de7; }
+  box-shadow: 6px 11px 41px -28px #a99de7;}
   .card-title {
     font-size: 18px;
     font-weight: 500;
