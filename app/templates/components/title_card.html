@@ -1,16 +1,17 @@
 {% if 'latest' in request.path %}
     <a href="{% url 'app:latest-title'  title.id %}" class='nav-link link-dark'>
 {% elif 'followed' in request.path %}
-        <a href="{% url 'app:followed-title-entries' title.id%}" class='nav-link link-dark'>
+    <a href="{% url 'app:followed-title-entries' title.id%}" class='nav-link link-dark'>
 {% else %}
     <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
 {% endif %}    
+<div class='mw-100 w-100'>
     <div class="card">
         {% if 'latest' in request.path or 'follow' in request.path %}
             {% if title.entries_count %}
                 <div class="card-body title-black">
             {% else %}
-                    <div class="card-body title-grey">
+                <div class="card-body title-grey">
             {% endif %}
         {% else %}
             <div class="card-body">
@@ -28,6 +29,8 @@
             </h5>
         </div>
     </div>
+
+</div>
 </a>
 
 <style>

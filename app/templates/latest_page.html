@@ -8,12 +8,9 @@
     <h3 class="">{% now 'd E Y' %}</h3>
 </div>
 
-<div class='d-flex flex-col justify-content-center align-items-center'>
-    <div class='row'>
-        <h4>Latest Titles</h4>
         {% if page_obj %}
             <span id='step-links' class="step-links">
-                <h5 id='title-area'></h5>
+                <h5 id='title-area' class='ml-5'> Latest Titles </h5>
                     {% if page_obj.object_list %}
                         {% include 'components/titles.html' %}
                         <div class='px-5'>
@@ -37,7 +34,6 @@
                     {% endif %}
             </span>
         {% endif %}
-    </div>
-</div>
+
 
 {% endblock %}

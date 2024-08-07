@@ -4,22 +4,31 @@
 
 {% block content %}
 
-<div class='d-flex flex-col justify-content-center align-items-center'>
-    <div class='row'>
-        {% if titles %}
-            <h4>Followed Titles</h4>
-            <div class="p-5">
-                {% for title in titles %}
-                    {% include 'components/title_card.html' %}
-                {% endfor %}
-            </div>
-        {% else %}
-            <div>
-                <h5> No followed title :/</h5>
-            </div>
-        {% endif %}
-    </div>
-    
-</div>
+{% if page_obj %}
+    <span id='step-links' class="step-links">
+        <h5 id='title-area' class='ml-5 mt-5'> Followed Titles </h5>
+            {% if page_obj.object_list %}
+                {% include 'components/titles.html' %}
+                <div class='px-5'>
+                    <div class='d-flex flex-row justify-content-end align-items-center mb-5'>
+                        
+                        {% if page_obj.has_previous %}
+                            <a class="btn btn-warning mx-1" href="?page=1">&laquo; first</a>
+                            <a class="btn btn-warning mx-1" href="?page={{ page_obj.previous_page_number }}">previous</a>
+                        {% endif %}
+                        
+                        <span class="current px-1">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a class="btn btn-warning mx-1" href="?page={{ page_obj.next_page_number }}">next</a>
+                            <a class="btn btn-warning mx-1" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                        {% endif %}
+                    </div>
+                </div>                
+            {% endif %}
+    </span>
+{% endif %}
 
 {% endblock %}

@@ -181,7 +181,7 @@ class FollowedTitleView(BaseView):
             filter=Q(entry__created_at__gt=F('followtitle__last_seen')) &
             Q(followtitle__author=request.user),
             distinct=True))
-        self.context['titles'] = titles.order_by('-entries_count')
+        self.set_pagination(titles.order_by('-entries_count'), request)
         return render(request, 'followed_titles_page.html', self.context)
 
 
