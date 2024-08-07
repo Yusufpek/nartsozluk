@@ -44,7 +44,7 @@ class TitleForm(forms.Form):
         text = self.cleaned_data.get('title')
         entry_content = self.cleaned_data.get('entry_content')
         entry_content = entry_content.split('<p>')[1].split('</p>')[0]
-        if Title.objects.filter(text__contains=text).exists():
+        if Title.objects.filter(text=text).exists():
             raise ValidationError("this title already added")
         elif entry_content:
             if content_is_empty(entry_content):
