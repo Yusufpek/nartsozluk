@@ -41,7 +41,7 @@
 </script>
 
     <div class="d-flex flex-column pt-4 justify-content-center align-items-center">
-        <h2><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title}}</a></h2>
+        <h2><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title|lower}}</a></h2>
         {% if title.topic %}
             <h6 class='mt-2'><a href="{% url 'app:topic' title.topic.id %}" class='link-warning'>{{title.topic}}</a></h6>
         {% endif %}
@@ -75,9 +75,14 @@
         </div>
     </div>
 
-
+    
     <span class="step-links">
         {% if page_obj.object_list %}
+            {% if 'latest' in request.path %}
+                <h5 class='px-5'>today's entries</h5>
+            {% elif 'follow' in request.path %}
+                <h5 class='px-5'>followed title entries</h5>
+            {% endif %}
             {% include 'components/entries.html' %}
             <div class='px-5'>
             <div class='d-flex flex-row justify-content-end align-items-center mb-5'>
