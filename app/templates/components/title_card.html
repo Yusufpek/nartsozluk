@@ -1,15 +1,32 @@
-<a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
+{% if 'latest' in request.path %}
+    <a href="{% url 'app:latest-title'  title.id %}" class='nav-link link-dark'>
+{% elif 'followed' in request.path %}
+        <a href="{% url 'app:followed-title-entries' title.id%}" class='nav-link link-dark'>
+{% else %}
+    <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
+{% endif %}    
     <div class="card">
-        <div class="card-body">
+        <div class="card-body {% if 'latest' in request.path or 'followed' in request.path and title.entries_count %}title-black{% else %}title-grey{% endif %}">
             <h5 class="card-title">
                 <div class="d-flex justify-content-between align-items-center">
+                    <div>
                     {{title.text}}
-                    <small>{{title.created_at}}</small> 
                     {% if title.entries_count %}
-                    <div> {{title.entries_count}} </div>
+                        ({{title.entries_count}}) 
                     {% endif %}
+                    </div>
+                    <small>{{title.created_at}}</small> 
                 </div>
             </h5>
         </div>
     </div>
 </a>
+
+<style>
+    .title-black .card-title {
+        color: black;
+    }
+    .title-grey .card-title {
+        color: grey;
+    }
+</style>
