@@ -22,6 +22,11 @@ class BaseView(View):
     ENTRY_COUNT = 10
 
     def get(self, request):
+        # reset
+        self.context['entries'] = None
+        self.context['page_obj'] = None
+        self.context['titles'] = None
+        self.context['entries'] = None
         # last followers
         if request.user.is_authenticated:
             follows = FollowAuthor.objects.filter(
@@ -40,8 +45,6 @@ class BaseView(View):
         self.context['topics'] = Topic.objects.all()
 
     def get_entry_count(self, request, is_title=True):
-        self.context['entries'] = None
-        self.context['page_obj'] = None
         if request.user.is_authenticated:
             if is_title:
                 self.ENTRY_COUNT = int(request.user.title_entry_count)
@@ -339,11 +342,11 @@ class LDMVViews(BaseView):
 class LatestView(BaseView):
     def get(self, request):
         super().get(request)
-
-        count = Count(
-            'entry',
-            filter=Q(entry__created_at__day=timezone.now().day))
-        titles = Title.objects.annotate(entries_count=count)
+        titles = Title.objects.annotate(
+            entries_count=Count(
+                'entry',
+                filter=Q(entry__created_at__day=timezone.now().day),
+                distinc=True))
         titles = titles.order_by('-entries_count')[:25]
         self.set_pagination(titles, request)
         return render(request, 'latest_page.html', self.context)

@@ -6,7 +6,15 @@
     <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
 {% endif %}    
     <div class="card">
-        <div class="card-body {% if 'latest' in request.path or 'followed' in request.path and title.entries_count %}title-black{% else %}title-grey{% endif %}">
+        {% if 'latest' in request.path or 'follow' in request.path %}
+            {% if title.entries_count %}
+                <div class="card-body title-black">
+            {% else %}
+                    <div class="card-body title-grey">
+            {% endif %}
+        {% else %}
+            <div class="card-body">
+        {% endif %}
             <h5 class="card-title">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
