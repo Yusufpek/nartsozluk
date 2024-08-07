@@ -31,6 +31,8 @@ urlpatterns = [
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     # title pages
+    path('<int:title_id>/latest',
+         views.LatestTitleView.as_view(), name="latest-title"),
     path('followed-titles',
          views.FollowedTitleView.as_view(), name="followed-title"),
     path('<int:title_id>/followed-title-entries',
