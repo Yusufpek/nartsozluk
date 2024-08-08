@@ -48,7 +48,9 @@ class Entry(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def is_edited(self):
-        return (self.created_at != self.updated_at)
+        compare_created_at = self.created_at.strftime("%B %d %Y - %I:%M %p")
+        compare_updated_at = self.updated_at.strftime("%B %d %Y - %I:%M %p")
+        return (compare_created_at != compare_updated_at)
 
     def __str__(self):
         return '{} - {} - {}'.format(self.title, self.author, self.created_at)
