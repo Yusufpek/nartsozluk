@@ -288,8 +288,6 @@ class OrderView(BaseView):
 
 # pagination
 class TodayView(BaseView):
-    context = {}
-
     def get(self, request):
         super().get(request)
 
@@ -307,6 +305,7 @@ class TodayView(BaseView):
 
         self.context['show_title'] = True
 
+        # ajax request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             if query == 1:
                 html = render_to_string(
@@ -371,7 +370,7 @@ class ProfileView(BaseView):
                     (F('up_votes') * 100 / F('total_votes')),
                     output_field=FloatField())).first()
         if not author:
-            return
+            return redirect('app:not-found')
 
         if author.total_votes == 0:
             author.upvote_ratio = 0
@@ -383,13 +382,13 @@ class ProfileView(BaseView):
         elif (request.user == author):
             follow = 1  # same person
         else:
-            try:
-                follow_author = FollowAuthor.objects.get(
-                    user=request.user, follow=author)
+            follow_author = FollowAuthor.objects.filter(
+                user=request.user, follow=author).first()
+            if follow_author:  # exist check
                 self.context['follow_date'] = follow_author.follow_date
                 follow = 2  # already follower
-            except FollowAuthor.DoesNotExist:
-                follow = 0
+            else:
+                follow = 0  # can follow
         self.context['follow'] = follow
 
         query = int(query)
@@ -473,28 +472,30 @@ class LogoutView(View):
         return redirect('app:login')
 
 
-class FollowUserView(View):
+class FollowUserView(BaseView):
     def get(self, request, follow_id):
-        try:
-            follow = Author.objects.get(pk=follow_id)
+        self.check_and_redirect_to_login(request)
+
+        follow = Author.objects.filter(pk=follow_id).first()
+        if follow:
             FollowAuthor(user=request.user, follow=follow).save()
             return redirect('app:profile', follow_id)
-        except Author.DoesNotExist:
+        else:
             return redirect('app:index')
 
 
 class UnFollowUserView(View):
     def get(self, request, follow_id):
-        try:
-            follow = Author.objects.get(pk=follow_id)
-            follow_author = FollowAuthor.objects.get(
-                user=request.user, follow=follow)
+        follow = Author.objects.filter(pk=follow_id).first()
+        if not follow:
+            return redirect('app:not-found')
+
+        follow_author = FollowAuthor.objects.filter(
+            user=request.user, follow=follow).first()
+        if follow_author:
             follow_author.delete()
-            return redirect('app:profile', follow_id)
-        except Author.DoesNotExist:
-            return redirect('app:index')
-        except FollowAuthor.DoesNotExist:
-            return redirect('app:profile', follow_id)
+
+        return redirect('app:profile', follow_id)
 
 
 class VoteView(View):
@@ -503,17 +504,19 @@ class VoteView(View):
         vote_is_up = request.POST.get('is_up') == '1'
         vote = Vote.objects.filter(entry_id=entry_id, voter=request.user)
         vote = vote.first()
-        if vote:
+        if vote:  # check is there a given vote
+            # it is up vote but user gave down vote before
             if (not vote.is_up) and vote_is_up:
                 vote.is_up = True
-                vote.save()
+            # it is down vote but user gave up vote before
             elif vote.is_up and (not vote_is_up):
                 vote.is_up = False
-                vote.save()
-        else:
+        else:   # create vote
             vote = Vote(
                 entry_id=entry_id, voter=request.user, is_up=vote_is_up)
         vote.save()
+
+        # get vote counts again for render
         up_votes_count = Vote.objects.filter(
             entry_id=entry_id, is_up=True).count()
         down_votes_count = Vote.objects.filter(
@@ -533,10 +536,10 @@ class FavEntryView(View):
         try:
             favorite = AuthorsFavorites.objects.filter(
                 entry_id=entry_id, author=user).first()
-            if favorite:
-                favorite.delete()
+            if favorite:  # if it is added to favorite
+                favorite.delete()  # delete it
                 is_favorite = False
-            else:
+            else:  # if it is not favorite create favorite object
                 AuthorsFavorites(entry_id=entry_id, author=user).save()
                 is_favorite = True
         except Exception as e:
@@ -574,8 +577,6 @@ class NewTitleView(BaseView):
 
 
 class TopicView(BaseView):
-    context = {}
-
     def get(self, request, topic_id):
         super().get(request)
         topic = Topic.objects.filter(pk=topic_id).first()
@@ -589,14 +590,14 @@ class TopicView(BaseView):
 
 
 class NewEntryView(BaseView):
-
     def get(self, request, title_id):
         super().get(request)
+
         title = Title.objects.filter(pk=title_id).first()
         if not title:
             return redirect('app:index')
 
-        form = EntryForm(request.POST)
+        form = EntryForm()
         self.context['title'] = title
         self.context['form'] = form
         return render(request, 'new_entry_page.html', self.context)
@@ -612,6 +613,7 @@ class NewEntryView(BaseView):
 
         form = EntryForm(request.POST)
         self.context['form'] = form
+
         if form.is_valid():
             entry_content = form.cleaned_data['content']
             entry = Entry.objects.filter(
@@ -642,6 +644,7 @@ class DeleteEntryView(BaseView):
         else:
             entry = Entry.objects.filter(
                 pk=entry_id, author=request.user).first()
+
         if entry:
             entry.delete()
             return JsonResponse({'success': True})
@@ -673,9 +676,7 @@ class EntryEditView(BaseView):
             entry = Entry.objects.filter(
                 pk=entry_id, author=request.user).first()
             if not entry:
-                message = 'you already wrote like this.'
-                messages.warning(request, message)
-                return render(request, 'new_entry_page.html', {'form': form})
+                return redirect('app:not-found')
             else:
                 entry.content = entry_content
                 entry.save()
@@ -710,7 +711,6 @@ class NotFoundView(View):
 
 
 class SettingsView(BaseView):
-    context = {}
     form = SettingsForm()
 
     def post(self, request):
@@ -720,6 +720,7 @@ class SettingsView(BaseView):
             img = form.cleaned_data['profile_image']
             title_entry_count = form.cleaned_data['title_entry_count']
             random_entry_count = form.cleaned_data['random_entry_count']
+            # check img is new
             if (request.user.profile_image != img and img != 'default.jpg'):
                 request.user.profile_image = img
             request.user.title_entry_count = title_entry_count
@@ -792,7 +793,6 @@ class ReportView(BaseView):
 
     def get(self, request, entry_id):
         super().get(request)
-        print("getttt")
         self.check_and_redirect_to_login(request)
 
         entry = Entry.objects.filter(pk=entry_id).first()
@@ -805,7 +805,7 @@ class ReportView(BaseView):
         return render(request, 'add_report_page.html', self.context)
 
 
-class SeeReportsView(BaseView):
+class AllReportsView(BaseView):
     def get(self, request):
         super().get(request)
         if not request.user.is_staff:
@@ -820,6 +820,7 @@ class ReportDeleteView(BaseView):
         # check user
         if not request.user.is_staff:
             return redirect('app:login')
+
         super().get(request)
 
         report_id = request.POST.get('report_id')
