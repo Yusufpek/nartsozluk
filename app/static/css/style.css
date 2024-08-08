@@ -7610,13 +7610,13 @@ sub {
     .nav-header {
       width: 14.375rem; } }
   .nav-header .brand-logo {
-    background-color: white;
+    background-color: #ffd2b6;
     align-items: center;
     justify-content: center;
   }
     .nav-header .brand-logo a {
       margin: 0.5rem;
-      background-color: white;
+      background-color: #ffd2b6;
       display: block; }
       .nav-header .brand-logo a i {
         font-size: 1.375rem; }
@@ -8160,16 +8160,16 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
   top: 5rem;
   padding-top: 0;
   z-index: 99;
-  background: #fff;
+  background: #ffd2b6 !important;
   transition: all .2s ease; }
   @media only screen and (min-width: 1200px) and (max-width: 1350px) {
     .nk-sidebar {
       width: 14.375rem; } }
   .nk-sidebar ul {
+    background: #ffd2b6 !important;
     padding: 0;
     margin: 0;
-    list-style: none;
-    background: #fafafa; }
+    list-style: none; }
   .nk-sidebar .metismenu {
     display: -webkit-box;
     display: -ms-flexbox;
