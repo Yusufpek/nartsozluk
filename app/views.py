@@ -821,7 +821,9 @@ class ReportDeleteView(BaseView):
             elif query == 1:
                 report.entry.delete()
             elif query == 2:
-                report.entry.author.delete()
+                author = report.entry.author.delete()
+                report.entry.delete()
+                author.delete()
             else:
                 return JsonResponse(
                     {'success': False, 'error': 'incorrect qeury'})

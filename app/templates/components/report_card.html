@@ -2,19 +2,30 @@
     <div class="card">
         <div class="card-header"> report no #{{report.id}} </div>
         <div class="card-body">
-            <h4>{{report.entry.title}}</h4>
-            {{report.entry.content|safe}}
-            <small class="text-muted">
-                {{report.entry.created_at|date:"M d, Y - h:m a" }}
-                {% if report.entry.is_edited %}
-                ~ {{report.entry.updated_at|date:"M d, Y - h:m a" }}
-                {% endif %}
-            </small>
+            <h5>reported entry: </h5>
             <hr/>
-            <h4>report reason</h4>
+            <h6>{{report.entry.title}}</h6>
+            {{report.entry.content|safe}}
             <div class="d-flex justify-content-between align-items-center">
-                <p>{{report.description}}</p>
-                <small>{{report.date}}</small> 
+                {% if report.entry.author %}
+                    <a href="{% url 'app:profile' report.entry.author.id %}" class="nav-link link-dark ml-0 pl-0"><p>{{report.entry.author}}</p></a>
+                {% else %}
+                    deleted user
+                {% endif %}
+                <small class="text-muted">
+                    <small>{{report.date}}</small> 
+                    {{report.entry.created_at|date:"M d, Y - h:m a" }}
+                    {% if report.entry.is_edited %}
+                    ~ {{report.entry.updated_at|date:"M d, Y - h:m a" }}
+                    {% endif %}
+                </small>
+            </div>
+            <hr/>
+            <h5>report reason</h5>
+            <div class='fw-500 my-2 '>{{report.description}}</div>
+            <div class="d-flex justify-content-between align-items-center">
+                <p>reported by: {{report.user}}</p>
+                <small>reported at: {{report.date}}</small>
             </div>
         </div>
         
@@ -22,7 +33,9 @@
             <div class="d-flex justify content-between general-button ">
                 <button type="button" class="btn mb-1 btn-danger delete-button mx-3" data-report-id="{{ report.id }}" data-query="0">delete report</button>
                 <button type="button" class="btn mb-1 btn-warning delete-button mx-3" data-report-id="{{ report.id }}" data-query="1">delete entry</button>
-                <button type="button" class="btn mb-1 btn-info delete-button mx-3" data-report-id="{{ report.id }}" data-query="2">delete user</button>
+                {% if report.entry.author %}
+                <button type="button" class="btn mb-1 btn-info delete-button mx-3" data-report-id="{{ report.id }}" data-query="2">delete user and entry</button>
+                {% endif %}
             </div>
         </div>
     
