@@ -50,7 +50,7 @@ urlpatterns = [
          views.SettingsView.as_view(), name='settings'),
     path('search', views.SearchView.as_view(), name='search'),
     path('<int:entry_id>/report', views.ReportView.as_view(), name="report"),
-    path('see-reports', views.SeeReportsView.as_view(), name="see-reports"),
+    path('all-reports', views.AllReportsView.as_view(), name="all-reports"),
     path('report-delete',
          views.ReportDeleteView.as_view(), name="report-delete"),
     path('not-found', views.NotFoundView.as_view(), name='not-found')
