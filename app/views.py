@@ -211,8 +211,6 @@ class FollowedTitleEntries(BaseView):
 
 
 class FollowView(BaseView):
-    context = {}
-
     def get(self, request):
         self.check_and_redirect_to_login(request)
         super().get(request)
@@ -234,6 +232,7 @@ class FollowView(BaseView):
         self.context['entries'] = entries.order_by('-created_at')
         self.context['show_title'] = True
 
+        # ajax request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             html = render_to_string(
                 'components/entries.html', self.context, request=request)
@@ -243,8 +242,6 @@ class FollowView(BaseView):
 
 
 class FavView(BaseView):
-    context = {}
-
     def get(self, request):
         self.check_and_redirect_to_login(request)
         super().get(request)
@@ -285,6 +282,7 @@ class OrderView(BaseView):
 
         self.context['order_choices'] = ORDER_CHOICES
         self.context['selected_choice'] = ORDER_CHOICES[query-1]
+        self.set_pagination(title_entries, request)
         return render(request, 'title_page.html', self.context)
 
 
