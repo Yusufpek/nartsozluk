@@ -85,3 +85,13 @@ class FollowTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     last_seen = models.DateTimeField(auto_now=True)
+
+
+class Report(models.Model):
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(Author, on_delete=models.CASCADE)
+    description = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.description + '- entry: ' + str(self.entry.id)

@@ -26,10 +26,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <script type="text/javascript" src="{% static "django_ckeditor_5/dist/bundle.js" %}"></script>
-    <link rel="stylesheet" href="{% static "django_ckeditor_5/dist/style.css" %}">
-    <link rel="stylesheet" href="{% static "django_ckeditor_5/dist/style.css" %}">
-    
+    <script type="text/javascript" src="{% static "django_ckeditor_5/dist/bundle.js" %}"></script>    
 
     <script src="https://unpkg.com/@trevoreyre/autocomplete-js"></script>
     <link rel="stylesheet" href="https://unpkg.com/@trevoreyre/autocomplete-js/dist/style.css"/>
@@ -302,6 +299,16 @@
                             <span class="nav-text">last day most voteds</span>
                         </a>
                     </li>
+
+                    {% if request.user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link link-light" href="{% url 'app:see-reports' %}">
+                                <i class="bi bi-flag"></i>
+                                <span class="nav-text">reports</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
                     <hr/>
                     
                     {% if request.user.is_authenticated %}

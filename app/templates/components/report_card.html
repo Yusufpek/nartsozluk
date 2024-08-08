@@ -1,0 +1,30 @@
+<div class='m-5'>
+    <div class="card">
+        <div class="card-header"> report no #{{report.id}} </div>
+        <div class="card-body">
+            <h4>{{report.entry.title}}</h4>
+            {{report.entry.content|safe}}
+            <small class="text-muted">
+                {{report.entry.created_at|date:"M d, Y - h:m a" }}
+                {% if report.entry.is_edited %}
+                ~ {{report.entry.updated_at|date:"M d, Y - h:m a" }}
+                {% endif %}
+            </small>
+            <hr/>
+            <h4>report reason</h4>
+            <div class="d-flex justify-content-between align-items-center">
+                <p>{{report.description}}</p>
+                <small>{{report.date}}</small> 
+            </div>
+        </div>
+        
+        <div class='card-footer'>
+            <div class="d-flex justify content-between general-button ">
+                <button type="button" class="btn mb-1 btn-danger delete-button mx-3" data-report-id="{{ report.id }}" data-query="0">delete report</button>
+                <button type="button" class="btn mb-1 btn-warning delete-button mx-3" data-report-id="{{ report.id }}" data-query="1">delete entry</button>
+                <button type="button" class="btn mb-1 btn-info delete-button mx-3" data-report-id="{{ report.id }}" data-query="2">delete user</button>
+            </div>
+        </div>
+    
+    </div>
+</div>

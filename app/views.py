@@ -10,9 +10,10 @@ from django.utils import timezone
 from django.views import View
 import random
 
-from .models import Title, Entry, Author, Vote, Topic
+from .models import Title, Entry, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
-from .forms import LoginForm, SignupForm, TitleForm, EntryForm, SettingsForm
+from .forms import LoginForm, SignupForm, SettingsForm
+from .forms import EntryForm, TitleForm, ReportForm
 from .constants import ORDER_CHOICES
 
 
@@ -89,6 +90,10 @@ class BaseView(View):
         self.context['show_title'] = False
         return title_entries
 
+    def redirect_to_not_found(self, object):
+        if not object:
+            return redirect('app:not-found')
+
 
 class HomeView(BaseView):
     def get(self, request):
@@ -112,8 +117,7 @@ class TitleView(BaseView):
         super().get(request)
 
         title = Title.objects.filter(pk=title_id).first()
-        if not title:
-            return redirect('app:not-found')
+        self.redirect_to_not_found(title)
 
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
@@ -368,8 +372,8 @@ class ProfileView(BaseView):
                 upvote_ratio=ExpressionWrapper(
                     (F('up_votes') * 100 / F('total_votes')),
                     output_field=FloatField())).first()
-        if not author:
-            return redirect('app:not-found')
+        self.redirect_to_not_found(author)
+
         if author.total_votes == 0:
             author.upvote_ratio = 0
         self.context['author'] = author
@@ -574,8 +578,7 @@ class TopicView(BaseView):
     def get(self, request, topic_id):
         super().get(request)
         topic = Topic.objects.filter(pk=topic_id).first()
-        if not topic:
-            return redirect('app:not-found')
+        self.redirect_to_not_found(topic)
 
         titles = Title.objects.filter(topic=topic)
         self.context['topic'] = topic
@@ -686,8 +689,7 @@ class EntryView(BaseView):
         super().get(request)
 
         entry = Entry.objects.filter(pk=entry_id)
-        if not entry:
-            return redirect('app:not-found')
+        self.redirect_to_not_found(entry)
         entry = self.get_is_fav_attr_entry(entry, request.user)
         entry = self.get_vote_counts_entry(entry)
         self.context["entries"] = [entry.first()]
@@ -761,3 +763,70 @@ class SearchView(View):
             result_data = sorted(result_data, key=lambda d: d['text'])
 
         return JsonResponse({'status': True, 'data': result_data})
+
+
+class ReportView(BaseView):
+    def post(self, request, entry_id):
+        self.check_and_redirect_to_login(request)
+
+        entry = Entry.objects.filter(pk=entry_id).first()
+        self.redirect_to_not_found(entry)
+        self.context['entry'] = entry
+
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            text = form.cleaned_data['text']
+            report = Report(description=text, entry=entry, user=request.user)
+            report.save()
+            return redirect('app:index')
+        else:
+            return render(request, 'add_report_page.html', {'form': form})
+
+    def get(self, request, entry_id):
+        super().get(request)
+        print("getttt")
+        self.check_and_redirect_to_login(request)
+
+        entry = Entry.objects.filter(pk=entry_id).first()
+        self.redirect_to_not_found(entry)
+        self.context['entry'] = entry
+
+        form = ReportForm()
+        self.context['form'] = form
+        return render(request, 'add_report_page.html', self.context)
+
+
+class SeeReportsView(BaseView):
+    def get(self, request):
+        super().get(request)
+        self.redirect_to_not_found(request.user.is_staff)
+        reports = Report.objects.order_by('date')
+        self.set_pagination(reports, request)
+        return render(request, 'all_reports_page.html', self.context)
+
+
+class ReportDeleteView(BaseView):
+    def post(self, request):
+        # check user
+        self.redirect_to_not_found(request.user.is_staff)
+        super().get(request)
+
+        report_id = request.POST.get('report_id')
+        query = int(request.POST.get('query'))
+        report = Report.objects.filter(pk=report_id).first()
+
+        if report:
+            if query == 0:
+                report.delete()
+            elif query == 1:
+                report.entry.delete()
+            elif query == 2:
+                report.entry.author.delete()
+            else:
+                return JsonResponse(
+                    {'success': False, 'error': 'incorrect qeury'})
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'report does not exist'})

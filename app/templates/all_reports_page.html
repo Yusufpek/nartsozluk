@@ -1,0 +1,109 @@
+{% extends "master.html" %}
+
+{% load static %}
+
+{% block content %}
+
+
+{% if page_obj %}
+<span id='step-links' class="step-links">
+    <h5 id='title-area'></h5>
+        {% if page_obj.object_list %}
+            {% for report in page_obj.object_list %}
+                {% include 'components/report_card.html' %}
+            {% endfor %}
+            <div class='p-5'>
+                <div class='d-flex flex-row justify-content-end align-items-center mb-5'>
+                    
+                    {% if page_obj.has_previous %}
+                        <a class="btn btn-warning mx-1" href="?page=1">&laquo; first</a>
+                        <a class="btn btn-warning mx-1" href="?page={{ page_obj.previous_page_number }}">previous</a>
+                    {% endif %}
+                    
+                    <span class="current px-1">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a class="btn btn-warning mx-1" href="?page={{ page_obj.next_page_number }}">next</a>
+                        <a class="btn btn-warning mx-1" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </div>
+            </div> 
+        {% endif %}              
+</span>
+{% else %}
+    <div class='m-5'>
+        <h5> no reports :) </h5>
+    </div>
+{% endif %}
+
+
+
+<script>
+    $(document).ready(function() {
+        $('.delete-button').click(function(event) {
+            event.preventDefault();
+            const reportId = $(this).data('report-id');
+            const query = $(this).data('query');
+            console.log(query);
+            $('#confirmDeleteModal').data({
+                'report-id': reportId,
+                'query': query
+            }).modal('show');
+        });
+        $('#confirmDelete').click(function() {
+            console.log("inside");
+            const reportId = $('#confirmDeleteModal').data('report-id');
+            const query = $('#confirmDeleteModal').data('query');
+            console.log(query);
+            $.ajax({
+                url: "{% url 'app:report-delete' %}",  // The URL of your delete view
+                method: 'POST',
+                data: {
+                    'report_id': reportId,
+                    'query': query,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`[data-report-id="${reportId}"]`).closest('.card').remove();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function(response) {
+                    alert('Error deleting entry.');
+                }
+            });
+            $('#confirmDeleteModal').modal('hide');
+        });
+        $('#cancel').click(function() {$('#confirmDeleteModal').modal('hide');});
+        $('#cancelButton').click(function() {$('#confirmDeleteModal').modal('hide');});
+    });
+</script>
+
+<!-- Add a modal for delete confirmation -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">confirm delete</h5>
+                <button type="button" id="cancel" class='close' data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                are you sure you want to delete?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id='cancelButton'>cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

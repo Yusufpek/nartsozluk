@@ -83,3 +83,10 @@ class SettingsForm(forms.ModelForm):
     class Meta:
         model = Author
         fields = ['random_entry_count', 'title_entry_count', 'profile_image']
+
+
+class ReportForm(forms.Form):
+    text = forms.CharField(
+        max_length=500,
+        label='report description',
+        widget=forms.Textarea)
