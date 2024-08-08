@@ -98,12 +98,26 @@ class HomeView(BaseView):
 
         # TODO: delete entry got error here!
         pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
+        max_count = Entry.objects.all().count()
         if (pk_max):
             count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
-            random_list = random.sample(range(1, pk_max+1), count)
-            entries = Entry.objects.filter(pk__in=random_list)
+            count = min(max_count, count)  # limit with entry count
+            if count == max_count:  # get all entries
+                entries = Entry.objects.all()
+            else:
+                random_list = random.sample(range(1, pk_max+1), count)
+                entries = Entry.objects.filter(pk__in=random_list)
+                remaining = count - entries.count()
+
+                # if random list has deleted entry ids
+                while remaining != 0:
+                    random_list = random.sample(range(1, pk_max+1), remaining)
+                    new_entries = Entry.objects.filter(pk__in=random_list)
+                    entries = entries | new_entries  # union of them
+                    remaining = count - len(entries)
+
             entries = self.get_is_fav_attr_entry(entries, request.user)
-            entries = entries.order_by('?')
+            entries = entries.order_by('?')  # shuffle
             self.context["entries"] = entries
         self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
