@@ -564,12 +564,14 @@ class NewTitleView(BaseView):
             entry.save()
             return redirect('app:index')
         else:
-            return render(request, 'new_title_page.html', {'form': form})
+            self.context['form'] = form
+            return render(request, 'new_title_page.html', self.context)
 
     def get(self, request):
         super().get(request)
         form = TitleForm()
-        return render(request, 'new_title_page.html', {'form': form})
+        self.context['form'] = form
+        return render(request, 'new_title_page.html', self.context)
 
 
 class TopicView(BaseView):
@@ -595,10 +597,9 @@ class NewEntryView(BaseView):
             return redirect('app:index')
 
         form = EntryForm(request.POST)
-        return render(request, 'new_entry_page.html', {
-            'form': form,
-            'title': title
-            })
+        self.context['title'] = title
+        self.context['form'] = form
+        return render(request, 'new_entry_page.html', self.context)
 
     def post(self, request, title_id):
         self.check_and_redirect_to_login(request)
@@ -607,7 +608,10 @@ class NewEntryView(BaseView):
         if not title:
             return redirect('app:index')
 
+        self.context['title'] = title
+
         form = EntryForm(request.POST)
+        self.context['form'] = form
         if form.is_valid():
             entry_content = form.cleaned_data['content']
             entry = Entry.objects.filter(
@@ -617,17 +621,14 @@ class NewEntryView(BaseView):
             if entry:
                 message = 'you already wrote like this.'
                 messages.warning(request, message)
-                return render(request, 'new_entry_page.html', {'form': form})
+                return render(request, 'new_entry_page.html', self.context)
             else:
                 Entry(
                     content=entry_content,
                     author=request.user,
                     title=title).save()
                 return redirect('app:title', title_id)
-        return render(request, 'new_entry_page.html', {
-                    'form': form,
-                    'title': title
-                    })
+        return render(request, 'new_entry_page.html', self.context)
 
 
 class DeleteEntryView(BaseView):
@@ -659,8 +660,9 @@ class EntryEditView(BaseView):
             return redirect('app:index')
 
         form = EntryForm(initial={'content': entry.content})
-        return render(request, 'new_entry_page.html', {
-            'form': form, 'title': entry.title})
+        self.context['form'] = form
+        self.context['title'] = entry.title
+        return render(request, 'new_entry_page.html', self.context)
 
     def post(self, request, entry_id):
         self.check_and_redirect_to_login(request)
@@ -678,8 +680,9 @@ class EntryEditView(BaseView):
                 entry.content = entry_content
                 entry.save()
                 return redirect('app:title', entry.title.id)
-        return render(request, 'new_entry_page.html',
-                      {'form': form, 'title': entry.title})
+        self.context['form'] = form
+        self.context['title'] = entry.title
+        return render(request, 'new_entry_page.html', self.context)
 
 
 class EntryView(BaseView):
@@ -721,7 +724,8 @@ class SettingsView(BaseView):
             request.user.random_entry_count = random_entry_count
             request.user.save()
             return redirect('app:profile', request.user.id)
-        return render(request, 'settings_page.html', {'form': form})
+        self.context['form'] = form
+        return render(request, 'settings_page.html', self.context)
 
     def get(self, request):
         self.check_and_redirect_to_login(request)
@@ -780,7 +784,8 @@ class ReportView(BaseView):
             report.save()
             return redirect('app:index')
         else:
-            return render(request, 'add_report_page.html', {'form': form})
+            self.context['form'] = form
+            return render(request, 'add_report_page.html', self.context)
 
     def get(self, request, entry_id):
         super().get(request)
