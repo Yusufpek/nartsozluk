@@ -11,10 +11,18 @@
         <h3 class="col">{{author.username}} profile</h3>
         {% if follow != -1 %}
             {% if follow == 0 %}
-                <h6 class=""><a class="nav-link link-dark" href="{% url 'app:follow-user' author.id %}" class='link-dark'><i class="bi bi-plus-square"></i> follow</a></h6>
+                <button type="button" class="btn btn-warning mx-5">
+                    <a class="nav-link link-dark p-0" href="{% url 'app:follow-user' author.id %}">
+                        <i class="bi bi-plus-square"></i> follow
+                    </a>
+                </button>
             {% elif follow == 2 %}
-                <div>
-                    <h6 class=""><a class="nav-link link-dark" href="{% url 'app:unfollow-user' author.id %}" class='link-dark'>unfollow</a></h6>
+                <div> 
+                    <button type="button" class="btn btn-warning mb-2">
+                        <a class="nav-link link-dark p-0" href="{% url 'app:unfollow-user' author.id %}">
+                            <i class="bi bi-plus-square"></i> unfollow
+                        </a>
+                    </button>
                     <h6 class="">followed from {{follow_date}}</h6>
                 </div>
             {% endif %}
