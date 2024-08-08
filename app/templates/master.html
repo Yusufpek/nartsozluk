@@ -97,7 +97,7 @@
                 */
                 new Autocomplete('#autocomplete', {
                     search: input => {
-                        const url = "{% url 'app:search' %}?query=" + encodeURIComponent(input);                        console.log(url);
+                        const url = "{% url 'app:search' %}?query=" + encodeURIComponent(input);
                         return new Promise(res => { // async object
                             fetch(url) // get request
                             .then(response => response.json()) // reach json response data async
@@ -105,12 +105,19 @@
                         })
                     },
                     renderResult: (result, props) =>{
+                        const userUrl = "{% url 'app:profile' 0 %}".replace('0', result.id);
                         const titleUrl = "{% url 'app:title' 0 %}".replace('0', result.id);
+                        var url = titleUrl;
+                        var text = result.text;
+                        if(!result.is_title){
+                            url = userUrl;
+                            text = '@' + text
+                        }
                         return `
                         <li ${props}>
-                            <a href="${titleUrl}">
+                            <a href="${url}">
                                 <div class="nav-link link-dark">
-                                    ${result.text}
+                                    ${text}
                                 </div>
                             </a>
                         </li>
@@ -139,8 +146,8 @@
                     <div class='mt-3 ml-3' style="width:50rem">
                         <div id="autocomplete" class="autocomplete">
                             <input class="autocomplete-input"
-                            placeholder="search for a title"
-                            aria-label="search for a title"
+                            placeholder="search for a title or user"
+                            aria-label="search for a title or user"
                             >
                             <ul class="autocomplete-result-list"></ul>
                         </div>

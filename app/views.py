@@ -745,7 +745,19 @@ class SearchView(View):
                 result_data.append(
                     {
                         'id': title.id,
-                        'text': title.text
+                        'text': title.text,
+                        'is_title': True
                     }
                 )
+            authors = Author.objects.filter(username__startswith=query)
+            for author in authors:
+                result_data.append(
+                    {
+                        'id': author.id,
+                        'text': author.username,
+                        'is_title': False
+                    }
+                )
+            result_data = sorted(result_data, key=lambda d: d['text'])
+
         return JsonResponse({'status': True, 'data': result_data})
