@@ -90,16 +90,13 @@ class BaseView(View):
         self.context['show_title'] = False
         return title_entries
 
-    def redirect_to_not_found(self, object):
-        if not object:
-            return redirect('app:not-found')
-
 
 class HomeView(BaseView):
     def get(self, request):
         super().get(request)
         self.get_entry_count(request, is_title=False)
 
+        # TODO: delete entry got error here!
         pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
         if (pk_max):
             count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
@@ -117,7 +114,8 @@ class TitleView(BaseView):
         super().get(request)
 
         title = Title.objects.filter(pk=title_id).first()
-        self.redirect_to_not_found(title)
+        if not title:
+            return redirect('app:not-found')
 
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
@@ -147,7 +145,7 @@ class LatestTitleView(TitleView):
         return render(request, 'title_page.html', self.context)
 
 
-class FollowedTitleView(BaseView):
+class FollowTitleView(BaseView):
     def post(self, request):
         self.check_and_redirect_to_login(request)
 
@@ -160,17 +158,19 @@ class FollowedTitleView(BaseView):
                 return JsonResponse(
                     {'success': False, 'error': "there is no title"})
 
+            is_follow = False
             follow = FollowTitle.objects.filter(
                 title=title, author=user).first()
 
             if follow:  # is follow check
                 follow.delete()
             else:
+                is_follow = True
                 FollowTitle(title=title, author=user).save()
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
-        return JsonResponse({'success': True})
+        return JsonResponse({'success': True, 'is_follow': is_follow})
 
     def get(self, request):
         self.check_and_redirect_to_login(request)
@@ -372,7 +372,8 @@ class ProfileView(BaseView):
                 upvote_ratio=ExpressionWrapper(
                     (F('up_votes') * 100 / F('total_votes')),
                     output_field=FloatField())).first()
-        self.redirect_to_not_found(author)
+        if not author:
+            return
 
         if author.total_votes == 0:
             author.upvote_ratio = 0
@@ -580,7 +581,8 @@ class TopicView(BaseView):
     def get(self, request, topic_id):
         super().get(request)
         topic = Topic.objects.filter(pk=topic_id).first()
-        self.redirect_to_not_found(topic)
+        if not topic:
+            return redirect('app:not-found')
 
         titles = Title.objects.filter(topic=topic)
         self.context['topic'] = topic
@@ -692,7 +694,9 @@ class EntryView(BaseView):
         super().get(request)
 
         entry = Entry.objects.filter(pk=entry_id)
-        self.redirect_to_not_found(entry)
+        if not entry:
+            return redirect('app:not-found')
+
         entry = self.get_is_fav_attr_entry(entry, request.user)
         entry = self.get_vote_counts_entry(entry)
         self.context["entries"] = [entry.first()]
@@ -774,7 +778,8 @@ class ReportView(BaseView):
         self.check_and_redirect_to_login(request)
 
         entry = Entry.objects.filter(pk=entry_id).first()
-        self.redirect_to_not_found(entry)
+        if not entry:
+            return redirect('app:not-found')
         self.context['entry'] = entry
 
         form = ReportForm(request.POST)
@@ -793,7 +798,8 @@ class ReportView(BaseView):
         self.check_and_redirect_to_login(request)
 
         entry = Entry.objects.filter(pk=entry_id).first()
-        self.redirect_to_not_found(entry)
+        if not entry:
+            return redirect('app:not-found')
         self.context['entry'] = entry
 
         form = ReportForm()
@@ -804,7 +810,8 @@ class ReportView(BaseView):
 class SeeReportsView(BaseView):
     def get(self, request):
         super().get(request)
-        self.redirect_to_not_found(request.user.is_staff)
+        if not request.user.is_staff:
+            return redirect('app:login')
         reports = Report.objects.order_by('date')
         self.set_pagination(reports, request)
         return render(request, 'all_reports_page.html', self.context)
@@ -813,7 +820,8 @@ class SeeReportsView(BaseView):
 class ReportDeleteView(BaseView):
     def post(self, request):
         # check user
-        self.redirect_to_not_found(request.user.is_staff)
+        if not request.user.is_staff:
+            return redirect('app:login')
         super().get(request)
 
         report_id = request.POST.get('report_id')

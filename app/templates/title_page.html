@@ -22,7 +22,8 @@
                 success: function(response) {
                     if (response.success) {
                         console.log("success")
-                        if(!isFollow){
+                        console.log(response.is_follow);
+                        if(!response.is_follow){
                             $(`.follow-button`).text("Follow Title");
                         }else{
                             $(`.follow-button`).text("Unfollow Title");

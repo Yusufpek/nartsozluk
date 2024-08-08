@@ -34,7 +34,7 @@ urlpatterns = [
     path('<int:title_id>/latest',
          views.LatestTitleView.as_view(), name="latest-title"),
     path('followed-titles',
-         views.FollowedTitleView.as_view(), name="followed-title"),
+         views.FollowTitleView.as_view(), name="followed-title"),
     path('<int:title_id>/followed-title-entries',
          views.FollowedTitleEntries.as_view(), name="followed-title-entries"),
     path('<int:title_id>/title', views.TitleView.as_view(), name="title"),
