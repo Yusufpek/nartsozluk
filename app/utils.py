@@ -7,7 +7,7 @@ def format_entry_urls(content):
     content = str(content).split("<a")
     for i in range(len(content)):
         if i != 0:
-            formatted_content += '<a'
+            formatted_content += '<a target="_blank"'
         else:
             formatted_content += content[i]
             continue
