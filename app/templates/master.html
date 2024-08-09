@@ -175,7 +175,7 @@
                                         <li class="notification-unread">
                                             <a href="{% url 'app:title' last_seen.title.id%}">
                                                 <div class="notification-content">
-                                                    <div class="notification-heading">{{last_seen.title}}</div>
+                                                    <div class="notification-heading"><h6>{{last_seen.title}}</h6></div>
                                                     <div class="notification-timestamp">{{last_seen.last_seen}}</div>
                                                 </div>
                                             </a>
@@ -203,11 +203,11 @@
                                             <li>
                                                 <a href="{% url 'app:profile' follow.user.id %}" class='nav-link link-dark'>
                                                     <span class="mr-3 avatar-icon bg-success-lighten-2">
-                                                        <img src="{{follow.user.profile_image.url}}" class='img-thumbnail'/>
+                                                        <img src="{{follow.user.profile_image.url}}" class='rounded-circle-xsmall'/>
                                                     </span>
                                                     <div class="notification-content">
-                                                        <h5 class="notification-heading pl-1">{{follow.user.username}}</h5>
-                                                        <span>Followed since {{follow.follow_date}}</span> 
+                                                        <div class="notification-heading pl-1"><h6>{{follow.user.username}}</h6></div>
+                                                        <small><span>Followed since {{follow.follow_date}}</span></small> 
                                                     </div>
                                                 </a>
                                             </li>
