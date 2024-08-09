@@ -25,7 +25,11 @@
                     <div>
                     {{title.text}}
                     {% if title.entries_count %}
-                        ({{title.entries_count}}) 
+                        {% if 'latest' in request.path %}
+                            <span> - {{title.entries_count}}</span>
+                        {% elif 'follow' in request.path %}
+                            <span>({{title.entries_count}})</span> 
+                        {% endif %}
                     {% endif %}
                     </div>
                     <small>{{title.created_at}}</small> 
