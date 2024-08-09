@@ -420,6 +420,7 @@ class ProfileView(BaseView):
             follows = FollowAuthor.objects.filter(follow=author)
             follower_ids = follows.values_list('user_id', flat=True)
             followers = Author.objects.filter(pk__in=follower_ids)
+            followers = followers.order_by("username")
             self.set_pagination(followers, request)
         else:
             self.context['page_obj'] = None
