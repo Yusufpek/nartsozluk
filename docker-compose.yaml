@@ -20,5 +20,6 @@ services:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - GOOGLE_API_KEY=AIzaSyBwzeW3os8t8vteSUQ8_zXQbJJ1XD_jpck
     depends_on:
       - db

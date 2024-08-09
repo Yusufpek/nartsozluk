@@ -14,7 +14,9 @@ from .models import Title, Entry, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
 from .forms import LoginForm, SignupForm, SettingsForm
 from .forms import EntryForm, TitleForm, ReportForm
+from .forms import AINewEntryForm, AINewTitleForm
 from .constants import ORDER_CHOICES
+from .ai_utils import AI, create_entry
 
 
 # user can choose random entry count max count is 50
@@ -160,8 +162,6 @@ class LatestTitleView(TitleView):
 
 class FollowTitleView(BaseView):
     def post(self, request):
-        super().post(request)
-
         title_id = request.POST.get('title_id')
         user = request.user
 
@@ -883,3 +883,85 @@ class ReportDeleteView(BaseView):
             return JsonResponse({
                 'success': False,
                 'error': 'report does not exist'})
+
+
+class AIView(BaseView):
+    def get(self, request, query):
+        if request.user.username != 'bot':
+            return redirect('app:login')
+        super().get(request)
+
+        if query == 0:
+            form = AINewTitleForm()
+        else:
+            form = AINewEntryForm()
+        self.context['form'] = form
+        self.context['query'] = query
+
+        return render(request, 'ai_page.html', self.context)
+
+    def post(self, request, query):
+        if request.user.username != 'bot':
+            return redirect('app:login')
+
+        print(query)
+        ai = AI()
+
+        if query == 0:
+            form = AINewTitleForm(request.POST)
+            if form.is_valid():
+                title_count = form.cleaned_data['title_count']
+                entry_count = form.cleaned_data['entry_per_title_count']
+
+                for _ in range(0, title_count):
+                    try:
+                        response = ai.create_new_title()
+                        print("title", response['title'])
+                        title = Title.objects.filter(
+                            text=response['title']).first()
+                        if title:
+                            create_entry(
+                                response['entry'],
+                                request.user,
+                                title)
+                            continue
+                        else:
+                            topic = Topic.objects.filter(
+                                text=response['topic'].lower()).first()
+                            if not topic:
+                                topic = Topic(text=response['topic'].lower())
+                                topic.save()
+                            title = Title(
+                                text=response['title'],
+                                topic=topic,
+                                owner=request.user)
+                            title.save()
+                            print('created title id:{id}, text: {text}'.format(
+                                id=title.id, text=title.text))
+                            create_entry(
+                                response['entry'], request.user, title)
+                        entry_count -= 1
+                        entry_res = ai.get_new_entries_to_title(
+                            title, entry_count)
+                        for res in entry_res:
+                            create_entry(res, request.user, title)
+                    except Exception as e:
+                        print("error while creating: " + str(e))
+            else:
+                self.context['form'] = form
+                return render(request, 'new_title_page.html', self.context)
+        else:
+            form = AINewEntryForm(request.POST)
+            if form.is_valid():
+                form_title = form.cleaned_data['title']
+                entry_count = form.cleaned_data['entry_count']
+                title = Title.objects.filter(pk=form_title).first()
+                if title:
+                    entry_res = ai.get_new_entries_to_title(
+                            title, entry_count)
+                    for res in entry_res:
+                        create_entry(res, request.user, title)
+            else:
+                self.context['form'] = form
+                return render(request, 'new_title_page.html', self.context)
+        return redirect('app:today')

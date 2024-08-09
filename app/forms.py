@@ -90,3 +90,24 @@ class ReportForm(forms.Form):
         max_length=500,
         label='report description',
         widget=forms.Textarea)
+
+
+class AINewTitleForm(forms.Form):
+    title_count = forms.IntegerField(min_value=1, max_value=5)
+    entry_per_title_count = forms.IntegerField(min_value=1, max_value=10)
+
+
+class AINewEntryForm(forms.Form):
+    title = forms.ChoiceField()
+    entry_count = forms.IntegerField(min_value=1, max_value=20)
+
+    def __init__(self, *args, **kwargs):
+        super(AINewEntryForm, self).__init__(*args, **kwargs)
+        titles = Title.objects.all().order_by("text")
+        t = []
+        for title in titles:
+            print(title.text)
+            t.append((title.id, title.text))
+            print(t)
+        print(t)
+        self.fields['title'].choices = tuple(t)
