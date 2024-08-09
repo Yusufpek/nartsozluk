@@ -218,6 +218,8 @@ class FollowedTitleEntries(BaseView):
             title_entries = Entry.objects.filter(title=title)
             entries = title_entries.filter(
                 created_at__gt=follow.last_seen).order_by('-created_at')
+            before_entry_count = title_entries.count() - entries.count()
+            self.context['before_entry_count'] = before_entry_count
             follow.save()  # update last seen
             if entries.exists():
                 before_entry_count = title_entries.filter(
@@ -423,7 +425,7 @@ class ProfileView(BaseView):
             self.set_pagination(user_entries, request)
         elif query == 2:
             user_titles = Title.objects.filter(
-                owner=author).order_by('created_at')
+                owner=author).order_by('-created_at')
             self.set_pagination(user_titles, request)
         elif query == 3:
             follows = FollowAuthor.objects.filter(follow=author)
