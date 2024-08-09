@@ -106,6 +106,5 @@ class AINewEntryForm(forms.Form):
         titles = Title.objects.all().order_by("text")
         t = []
         for title in titles:
-            print(title.text)
             t.append((title.id, title.text))
         self.fields['title'].choices = tuple(t)
