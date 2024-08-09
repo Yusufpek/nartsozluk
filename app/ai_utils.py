@@ -62,7 +62,7 @@ class AI:
                 the titles are about some topics which are career,
                 music, sport, news and other can you write {count} entry
                 up to 500 character for {title} in {topic} topic. It is up to
-                500 chars, create different lengths entries.
+                500 chars, create different lengths entries in turkish.
                 Some examples of titles and entries
                 topic: carrer, title: 'hacettepe', the entries: [
                 'okulum',
@@ -80,8 +80,8 @@ class AI:
                 'en sevdiğim müzik grubu', 'yeni singleı
                 https://www.youtube.com/watch?v=fjpgdivWwt0 olan grup']
                 you can write the entry content with html content
-                (a, small, italic, bold etc).
-                Can u write in the just format of:
+                (a, small, italic, bold etc). do not use *, write in html
+                format if you need. Can u write in the just format of:
                 ## Entry: <entry>
                 ## Entry: <entry>
             """.format(title=title.text, topic=title.topic, count=count))
