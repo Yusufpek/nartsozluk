@@ -84,6 +84,11 @@
             {% elif 'follow' in request.path %}
                 <h5 class='px-5'>followed title entries</h5>
             {% endif %}
+            {% if before_entry_count %}
+                <div class='d-flex justify-content-center'>
+                    <a href="{% url 'app:title' title.id %}" class="btn btn-outline-dark mt-5 w-75" role="button" aria-pressed="true">{{before_entry_count}} more entries</a>
+                </div>
+            {% endif %}
             {% include 'components/entries.html' %}
             <div class='px-5'>
             <div class='d-flex flex-row justify-content-end align-items-center mb-5'>

@@ -1,5 +1,9 @@
 {% if 'latest' in request.path %}
-    <a href="{% url 'app:latest-title'  title.id %}" class='nav-link link-dark'>
+    {% if title.entries_count %}
+        <a href="{% url 'app:latest-title'  title.id %}" class='nav-link link-dark'>
+    {% else %}
+        <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
+    {% endif %}
 {% elif 'followed' in request.path %}
     <a href="{% url 'app:followed-title-entries' title.id%}" class='nav-link link-dark'>
 {% else %}

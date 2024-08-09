@@ -145,6 +145,7 @@ class TitleView(BaseView):
 
         self.context['is_follow'] = is_follow
         self.context['order_choices'] = ORDER_CHOICES
+        self.context['before_entry_count'] = 0
         return render(request, 'title_page.html', self.context)
 
 
@@ -152,10 +153,12 @@ class LatestTitleView(TitleView):
     def get(self, request, title_id):
         super().get(request, title_id)
         title = self.context['title']
-        title_entries = Entry.objects.filter(
-            title=title, created_at__day=timezone.now().day)
-        self.set_entries_for_title_page(title_entries, request)
-
+        title_entries = Entry.objects.filter(title=title)
+        entries = title_entries.filter(created_at__day=timezone.now().day)
+        before_entry_count = title_entries.filter(
+            created_at__day__lt=timezone.now().day).count()
+        self.set_entries_for_title_page(entries, request)
+        self.context["before_entry_count"] = before_entry_count
         return render(request, 'title_page.html', self.context)
 
 
@@ -212,12 +215,15 @@ class FollowedTitleEntries(BaseView):
             title=title, author=request.user).first()
         if title and follow:
             self.context['title'] = title
-            entries = Entry.objects.filter(
-                title=title, created_at__gt=follow.last_seen
-                ).order_by('-created_at')
+            title_entries = Entry.objects.filter(title=title)
+            entries = title_entries.filter(
+                created_at__gt=follow.last_seen).order_by('-created_at')
             follow.save()  # update last seen
             if entries.exists():
+                before_entry_count = title_entries.filter(
+                    created_at__lte=follow.last_seen).count()
                 self.set_entries_for_title_page(entries, request)
+                self.context['before_entry_count'] = before_entry_count
                 return render(request, 'title_page.html', self.context)
             return redirect('app:title', title_id)  # no entry show all
         else:
