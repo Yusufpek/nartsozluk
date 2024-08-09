@@ -108,6 +108,4 @@ class AINewEntryForm(forms.Form):
         for title in titles:
             print(title.text)
             t.append((title.id, title.text))
-            print(t)
-        print(t)
         self.fields['title'].choices = tuple(t)
