@@ -70,10 +70,6 @@ class BaseView(View):
     def get_fav_counts_entry(self, base_manager):
         return base_manager.annotate(fav_count=Count('authorsfavorites'))
 
-    def check_and_redirect_to_login(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
     def set_pagination(self, base_manager, request):
         paginator = Paginator(base_manager, self.ENTRY_COUNT)
         page_number = request.GET.get("page")
@@ -164,7 +160,7 @@ class LatestTitleView(TitleView):
 
 class FollowTitleView(BaseView):
     def post(self, request):
-        self.check_and_redirect_to_login(request)
+        super().post(request)
 
         title_id = request.POST.get('title_id')
         user = request.user
@@ -190,7 +186,9 @@ class FollowTitleView(BaseView):
         return JsonResponse({'success': True, 'is_follow': is_follow})
 
     def get(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+
         super().get(request)
 
         follows = FollowTitle.objects.filter(author=request.user)
@@ -207,8 +205,10 @@ class FollowTitleView(BaseView):
 
 class FollowedTitleEntries(BaseView):
     def get(self, request, title_id):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+
         super().get(request)
-        self.check_and_redirect_to_login(request)
 
         title = Title.objects.filter(pk=title_id).first()
         follow = FollowTitle.objects.filter(
@@ -232,7 +232,9 @@ class FollowedTitleEntries(BaseView):
 
 class FollowView(BaseView):
     def get(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+
         super().get(request)
 
         follows = FollowAuthor.objects.filter(user=request.user)
@@ -263,7 +265,8 @@ class FollowView(BaseView):
 
 class FavView(BaseView):
     def get(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
         super().get(request)
 
         entries = Entry.objects.filter(
@@ -495,7 +498,8 @@ class LogoutView(View):
 
 class FollowUserView(BaseView):
     def get(self, request, follow_id):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
 
         follow = Author.objects.filter(pk=follow_id).first()
         if follow:
@@ -573,7 +577,8 @@ class NewTitleView(BaseView):
     form = TitleForm()
 
     def post(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
 
         form = TitleForm(request.POST)
         if form.is_valid():
@@ -591,7 +596,10 @@ class NewTitleView(BaseView):
             return render(request, 'new_title_page.html', self.context)
 
     def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
         super().get(request)
+
         form = TitleForm()
         self.context['form'] = form
         return render(request, 'new_title_page.html', self.context)
@@ -612,6 +620,8 @@ class TopicView(BaseView):
 
 class NewEntryView(BaseView):
     def get(self, request, title_id):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
         super().get(request)
 
         title = Title.objects.filter(pk=title_id).first()
@@ -624,7 +634,8 @@ class NewEntryView(BaseView):
         return render(request, 'new_entry_page.html', self.context)
 
     def post(self, request, title_id):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
 
         title = Title.objects.filter(pk=title_id).first()  # check title
         if not title:
@@ -656,7 +667,8 @@ class NewEntryView(BaseView):
 
 class DeleteEntryView(BaseView):
     def post(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
         super().get(request)
 
         entry_id = request.POST.get('entry_id')
@@ -689,7 +701,8 @@ class EntryEditView(BaseView):
         return render(request, 'new_entry_page.html', self.context)
 
     def post(self, request, entry_id):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
 
         form = EntryForm(request.POST)
         if form.is_valid():
@@ -735,7 +748,9 @@ class SettingsView(BaseView):
     form = SettingsForm()
 
     def post(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
+
         form = SettingsForm(request.POST, request.FILES)
         if form.is_valid():
             img = form.cleaned_data['profile_image']
@@ -752,7 +767,8 @@ class SettingsView(BaseView):
         return render(request, 'settings_page.html', self.context)
 
     def get(self, request):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
         super().get(request)
 
         initial = {
@@ -795,7 +811,8 @@ class SearchView(View):
 
 class ReportView(BaseView):
     def post(self, request, entry_id):
-        self.check_and_redirect_to_login(request)
+        if not request.user.is_authenticated:
+            return redirect('app:login')
 
         entry = Entry.objects.filter(pk=entry_id).first()
         if not entry:
@@ -813,8 +830,9 @@ class ReportView(BaseView):
             return render(request, 'add_report_page.html', self.context)
 
     def get(self, request, entry_id):
+        if not request.user.is_authenticated:
+            return redirect('app:login')
         super().get(request)
-        self.check_and_redirect_to_login(request)
 
         entry = Entry.objects.filter(pk=entry_id).first()
         if not entry:
