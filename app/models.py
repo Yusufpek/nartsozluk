@@ -9,7 +9,9 @@ from .constants import COUNT_CHOICES
 # Create your models here.
 class Author(AbstractUser):
     random_entry_count = models.CharField(
-        max_length=2, default='10', choices=COUNT_CHOICES)
+        max_length=2,
+        default='10',
+        choices=COUNT_CHOICES)
     title_entry_count = models.CharField(
         max_length=2, default='10', choices=COUNT_CHOICES)
     profile_image = models.ImageField(
