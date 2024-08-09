@@ -693,7 +693,10 @@ class EntryEditView(BaseView):
 
         entry = Entry.objects.filter(pk=entry_id).first()
         if not entry:
-            return redirect('app:index')
+            return redirect('app:not-found')
+
+        if request.user != entry.author:
+            return redirect('app:login')
 
         form = EntryForm(initial={'content': entry.content})
         self.context['form'] = form
@@ -904,9 +907,7 @@ class AIView(BaseView):
         if request.user.username != 'bot':
             return redirect('app:login')
 
-        print(query)
         ai = AI()
-
         if query == 0:
             form = AINewTitleForm(request.POST)
             if form.is_valid():
@@ -916,7 +917,6 @@ class AIView(BaseView):
                 for _ in range(0, title_count):
                     try:
                         response = ai.create_new_title()
-                        print("title", response['title'])
                         title = Title.objects.filter(
                             text=response['title']).first()
                         if title:
