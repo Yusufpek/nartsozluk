@@ -17,7 +17,7 @@ from .forms import EntryForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
-
+from .search import search_authors
 
 # user can choose random entry count max count is 50
 class BaseView(View):
@@ -792,6 +792,8 @@ class SearchView(View):
         result_data = []
         if query:
             titles = Title.objects.filter(text__startswith=query)
+            response = search_authors(query)
+            print(response)
             for title in titles:
                 result_data.append(
                     {
@@ -942,9 +944,8 @@ class AIView(BaseView):
                                 id=title.id, text=title.text))
                             create_entry(
                                 response['entry'], request.user, title)
-                        entry_count -= 1
                         entry_res = ai.get_new_entries_to_title(
-                            title, entry_count)
+                            title, entry_count-1)
                         for res in entry_res:
                             create_entry(res, request.user, title)
                     except Exception as e:

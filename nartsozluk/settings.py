@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!3(8y!!mo-3gsc39ziy8(gy!$7z*n9=6dj%wx&jod8mm_xf43t'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap4',
     'django_ckeditor_5',
+    'django_elasticsearch_dsl',
     'app'
 ]
 
@@ -150,5 +151,13 @@ CKEDITOR_5_CONFIGS = {
                     'bulletedList', 'numberedList', 'blockQuote',],
         # 'imageUpload', ],
         'language': 'en',
+    },
+}
+
+
+# Elasticsearch
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': "http://elasticsearch:9200",
     },
 }
