@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'nartsozluk.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_NAME'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
@@ -159,5 +159,9 @@ CKEDITOR_5_CONFIGS = {
 ELASTICSEARCH_DSL = {
     'default': {
         'hosts': "http://elasticsearch:9200",
+        'basic_auth': (
+            os.environ.get('ELASTICSEARCH_USER'),
+            os.environ.get('ELASTICSEARCH_PASS'),
+        ),
     },
 }

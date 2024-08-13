@@ -11,10 +11,10 @@ Django==4.2.14
 django-bootstrap-v5==1.0.11
 django-ckeditor-5==0.2.13
 django-crispy-forms==2.3
-django-elasticsearch-dsl==8.0
+django-elasticsearch-dsl==7.4
 elastic-transport==8.13.1
-elasticsearch==8.14.0
-elasticsearch-dsl==8.14.0
+elasticsearch==7.9.0
+elasticsearch-dsl==7.4.1
 google-ai-generativelanguage==0.6.6
 google-api-core==2.19.1
 google-api-python-client==2.140.0
@@ -29,6 +29,7 @@ idna==3.7
 pillow==10.4.0
 proto-plus==1.24.0
 protobuf==4.25.4
+psycopg2==2.9.9
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pydantic==2.8.2

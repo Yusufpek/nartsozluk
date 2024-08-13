@@ -3,6 +3,7 @@ version: "3.12"
 services:
   db:
     image: postgres
+    platform: linux/amd64
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
@@ -12,6 +13,7 @@ services:
 
   elasticsearch:
     image: elasticsearch:7.8.1
+    platform: linux/amd64
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -22,7 +24,7 @@ services:
 
   web:
     build: .
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
@@ -37,4 +39,8 @@ services:
       - ELASTICSEARCH_PASS=${ELASTICSEARCH_PASS}
     depends_on:
       - db
-      - elasticsearch
+      - elasticsearch 
+
+volumes:
+  db:
+  elasticsearch:
