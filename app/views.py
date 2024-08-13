@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Max, Count, Q, F, ExpressionWrapper, Value
+from django.db.models import Max, Count, Q, F, Value
 from django.db.models import FloatField, Case, When, BooleanField
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -18,6 +18,7 @@ from .forms import AINewEntryForm, AINewTitleForm
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_authors
+
 
 # user can choose random entry count max count is 50
 class BaseView(View):
@@ -391,8 +392,9 @@ class ProfileView(BaseView):
             up_votes=Count('entry__vote',
                            filter=Q(entry__vote__is_up=True), distinct=True),
             ).annotate(
-                upvote_ratio=ExpressionWrapper(
-                    (F('up_votes') * 100 / F('total_votes')),
+                upvote_ratio=Case(
+                    When(total_votes=0, then=Value(0)),
+                    default=(F('up_votes') * 100 / F('total_votes')),
                     output_field=FloatField())).first()
         if not author:
             return redirect('app:not-found')
@@ -791,7 +793,7 @@ class SearchView(View):
         query = request.GET.get('query')
         result_data = []
         if query:
-            titles = Title.objects.filter(text__startswith=query)
+            titles = Title.objects.filter(text__istartswith=query)
             response = search_authors(query)
             print(response)
             for title in titles:

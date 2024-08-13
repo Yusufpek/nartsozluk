@@ -13,8 +13,8 @@ class AuthorDocument(Document):
         model = Author
 
         fields = [
-            'username',
-            'id'
+            'id',
+            'username'
         ]
 
 
