@@ -8,6 +8,9 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
 from django.views import View
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+
 import random
 
 from .models import Title, Entry, Author, Vote, Topic, Report
@@ -21,6 +24,18 @@ from .search import search_titles, search_authors, search_topics
 
 
 # user can choose random entry count max count is 50
+class CacheHeaderMixin(object):
+    cache_timeout = 60 * 60  # one hour
+    # cache_timeout = 60 * 5
+
+    def get_cache_timeout(self):
+        return self.cache_timeout
+
+    def dispatch(self, *args, **kwargs):
+        return cache_page(self.get_cache_timeout())(super(
+            CacheHeaderMixin, self).dispatch)(*args, **kwargs)
+
+
 class BaseView(View):
     context = {}
     ENTRY_COUNT = 10
@@ -95,29 +110,35 @@ class HomeView(BaseView):
         super().get(request)
         self.get_entry_count(request, is_title=False)
 
-        # TODO: delete entry got error here!
-        pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
-        max_count = Entry.objects.all().count()
-        if (pk_max):
-            count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
-            count = min(max_count, count)  # limit with entry count
-            if count == max_count:  # get all entries
-                entries = Entry.objects.all()
-            else:
-                random_list = random.sample(range(1, pk_max+1), count)
-                entries = Entry.objects.filter(pk__in=random_list)
-                remaining = count - entries.count()
+        if 'random_entries' in cache:
+            entries = cache.get('random_entries')
+            print("random entries in cache deleted")
+        else:
+            # TODO: delete entry got error here!
+            pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
+            max_count = Entry.objects.all().count()
+            if (pk_max):
+                count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
+                count = min(max_count, count)  # limit with entry count
+                if count == max_count:  # get all entries
+                    entries = Entry.objects.all()
+                else:
+                    random_list = random.sample(range(1, pk_max+1), count)
+                    entries = Entry.objects.filter(pk__in=random_list)
+                    remaining = count - entries.count()
 
-                # if random list has deleted entry ids
-                while remaining != 0:
-                    random_list = random.sample(range(1, pk_max+1), remaining)
-                    new_entries = Entry.objects.filter(pk__in=random_list)
-                    entries = entries | new_entries  # union of them
-                    remaining = count - len(entries)
-
-            entries = self.get_is_fav_attr_entry(entries, request.user)
-            entries = entries.order_by('?')  # shuffle
-            self.context["entries"] = entries
+                    # if random list has deleted entry ids
+                    while remaining != 0:
+                        random_list = random.sample(
+                            range(1, pk_max+1), remaining)
+                        new_entries = Entry.objects.filter(pk__in=random_list)
+                        entries = entries | new_entries  # union of them
+                        remaining = count - len(entries)
+                # timeout - in seconds (5 minutes)
+                cache.set('random_entries', entries, timeout=300)
+        entries = self.get_is_fav_attr_entry(entries, request.user)
+        entries = entries.order_by('?')  # shuffle
+        self.context["entries"] = entries
         self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
 
@@ -343,7 +364,7 @@ class TodayView(BaseView):
         return render(request, 'today_page.html', self.context)
 
 
-class LDMVViews(BaseView):
+class LDMVViews(BaseView, CacheHeaderMixin):
     context = {}
 
     def get(self, request):
