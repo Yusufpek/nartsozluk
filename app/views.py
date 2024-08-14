@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views import View
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
+from django.contrib.auth.mixins import UserPassesTestMixin
 
 import random
 
@@ -34,6 +35,12 @@ class CacheHeaderMixin(object):
     def dispatch(self, *args, **kwargs):
         return cache_page(self.get_cache_timeout())(super(
             CacheHeaderMixin, self).dispatch)(*args, **kwargs)
+
+
+class AuthMixin(UserPassesTestMixin):
+    def test_func(self):
+        print("======HERE=======")
+        return self.request.user.is_authenticated
 
 
 class BaseView(View):
@@ -182,7 +189,7 @@ class LatestTitleView(TitleView):
         return render(request, 'title_page.html', self.context)
 
 
-class FollowTitleView(BaseView):
+class FollowTitleView(AuthMixin, BaseView):
     def post(self, request):
         title_id = request.POST.get('title_id')
         user = request.user
@@ -208,9 +215,6 @@ class FollowTitleView(BaseView):
         return JsonResponse({'success': True, 'is_follow': is_follow})
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
         super().get(request)
 
         follows = FollowTitle.objects.filter(author=request.user)
@@ -225,10 +229,8 @@ class FollowTitleView(BaseView):
         return render(request, 'followed_titles_page.html', self.context)
 
 
-class FollowedTitleEntries(BaseView):
+class FollowedTitleEntries(AuthMixin, BaseView):
     def get(self, request, title_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
 
         super().get(request)
 
@@ -254,11 +256,8 @@ class FollowedTitleEntries(BaseView):
             return render('app:not-found')
 
 
-class FollowView(BaseView):
+class FollowView(AuthMixin, BaseView):
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
         super().get(request)
 
         follows = FollowAuthor.objects.filter(user=request.user)
@@ -287,10 +286,8 @@ class FollowView(BaseView):
             return render(request, 'follow_page.html', self.context)
 
 
-class FavView(BaseView):
+class FavView(AuthMixin, BaseView):
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
         super().get(request)
 
         entries = Entry.objects.filter(
@@ -364,7 +361,7 @@ class TodayView(BaseView):
         return render(request, 'today_page.html', self.context)
 
 
-class LDMVViews(BaseView, CacheHeaderMixin):
+class LDMVViews(CacheHeaderMixin, BaseView):
     context = {}
 
     def get(self, request):
@@ -521,11 +518,8 @@ class LogoutView(View):
         return redirect('app:login')
 
 
-class FollowUserView(BaseView):
+class FollowUserView(AuthMixin, BaseView):
     def get(self, request, follow_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
         follow = Author.objects.filter(pk=follow_id).first()
         if follow:
             FollowAuthor(user=request.user, follow=follow).save()
@@ -598,12 +592,10 @@ class FavEntryView(View):
         return JsonResponse({'success': True, 'is_favorite': is_favorite})
 
 
-class NewTitleView(BaseView):
+class NewTitleView(AuthMixin, BaseView):
     form = TitleForm()
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
 
         form = TitleForm(request.POST)
         if form.is_valid():
@@ -621,8 +613,6 @@ class NewTitleView(BaseView):
             return render(request, 'new_title_page.html', self.context)
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
         super().get(request)
 
         form = TitleForm()
@@ -643,10 +633,8 @@ class TopicView(BaseView):
         return render(request, 'topic_title_page.html', self.context)
 
 
-class NewEntryView(BaseView):
+class NewEntryView(AuthMixin, BaseView):
     def get(self, request, title_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
         super().get(request)
 
         title = Title.objects.filter(pk=title_id).first()
@@ -659,9 +647,6 @@ class NewEntryView(BaseView):
         return render(request, 'new_entry_page.html', self.context)
 
     def post(self, request, title_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
         title = Title.objects.filter(pk=title_id).first()  # check title
         if not title:
             return redirect('app:index')
@@ -690,10 +675,8 @@ class NewEntryView(BaseView):
         return render(request, 'new_entry_page.html', self.context)
 
 
-class DeleteEntryView(BaseView):
+class DeleteEntryView(AuthMixin, BaseView):
     def post(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
         super().get(request)
 
         entry_id = request.POST.get('entry_id')
@@ -712,7 +695,7 @@ class DeleteEntryView(BaseView):
                 'error': 'Entry does not exist, or the author is not valid'})
 
 
-class EntryEditView(BaseView):
+class EntryEditView(AuthMixin, BaseView):
     def get(self, request, entry_id):
         super().get(request)
 
@@ -729,8 +712,6 @@ class EntryEditView(BaseView):
         return render(request, 'new_entry_page.html', self.context)
 
     def post(self, request, entry_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
 
         form = EntryForm(request.POST)
         if form.is_valid():
@@ -772,13 +753,10 @@ class NotFoundView(View):
         return render(request, 'not_found_page.html', self.context)
 
 
-class SettingsView(BaseView):
+class SettingsView(AuthMixin, BaseView):
     form = SettingsForm()
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
         form = SettingsForm(request.POST, request.FILES)
         if form.is_valid():
             img = form.cleaned_data['profile_image']
@@ -795,8 +773,6 @@ class SettingsView(BaseView):
         return render(request, 'settings_page.html', self.context)
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
         super().get(request)
 
         initial = {
@@ -850,11 +826,8 @@ class SearchView(View):
         return JsonResponse({'status': True, 'data': result_data})
 
 
-class ReportView(BaseView):
+class ReportView(AuthMixin, BaseView):
     def post(self, request, entry_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
-
         entry = Entry.objects.filter(pk=entry_id).first()
         if not entry:
             return redirect('app:not-found')
@@ -871,8 +844,6 @@ class ReportView(BaseView):
             return render(request, 'add_report_page.html', self.context)
 
     def get(self, request, entry_id):
-        if not request.user.is_authenticated:
-            return redirect('app:login')
         super().get(request)
 
         entry = Entry.objects.filter(pk=entry_id).first()
