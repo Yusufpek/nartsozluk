@@ -17,7 +17,9 @@
                             <form class="mt-5 mb-5 login-input" method="POST">
                                 {% csrf_token %}
                                 {{ form|crispy }}
-                                <button class="btn login-form__btn new-title">add report</button>
+                                <button class="btn login-form__btn new-title">
+                                    <span>add report</span>
+                                </button>
                             </form>
                             {% if messages %}
                                 <ul class="messages">

@@ -52,11 +52,13 @@
             {% endif %}
             <div class="btn-group">
                 <button id="btnGroupDrop1" type="button" class="btn link-secondary dropdown-toggle" data-toggle="dropdown">
-                    {% if selected_choice %}
-                        {{selected_choice}}
-                    {% else %}
-                        Order By
-                    {% endif %}
+                    <span>
+                        {% if selected_choice %}
+                            {{selected_choice}}
+                        {% else %}
+                            Order By
+                        {% endif %}
+                    </span>
                 </button>
                 <div class="dropdown-menu">
                     {% for choice in order_choices %}
@@ -66,11 +68,13 @@
             </div>  
             {% if request.user.is_authenticated %}
             <button type="button" class="btn link-secondary follow-button"  data-title-id="{{title.id}}" data-is-follow="{{is_follow}}">
-                {% if is_follow %}
-                    Unfollow Title
-                {% else %}
-                    Follow Title
-                {% endif %}
+                <span>
+                    {% if is_follow %}
+                        Unfollow Title
+                    {% else %}
+                        Follow Title
+                    {% endif %}
+                </span>
             </button>
             {% endif %}
         </div>

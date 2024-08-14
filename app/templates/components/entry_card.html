@@ -13,10 +13,12 @@
             <h6 class="mb-sm-0">
                 {% if entry.author != None %}
                 <a href= "{% url 'app:profile' entry.author.id %}" class='link-secondary'>
-                    <div><img src="{{entry.author.profile_image.url}}" class='rounded-circle-xsmall mx-2'/>{{entry.author}}</div>
+                    <div>
+                        <img src="{{entry.author.profile_image.url}}" class='rounded-circle-xsmall mx-2'/><span>{{entry.author}}</span>
+                    </div>
                 </a>
                 {% else %}
-                deleted user
+                <span> deleted user </span>
                 {% endif %}
             </h6>
             <small class="text-muted ml-3">

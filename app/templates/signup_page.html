@@ -42,7 +42,9 @@
                                 <form class="mt-5 mb-5 login-input" method='POST'>
                                     {% csrf_token %}
                                     {{ form|crispy }}
-                                    <button class="btn login-form__btn submit w-100">sign up</button>
+                                    <button class="btn login-form__btn submit w-100">
+                                        <span>sign up</span>
+                                    </button>
                                 </form>
                                     <p class="mt-5 login-form__footer">have an account, <a href="{% url 'app:login' %}" class="text-primary">log in</a> now</p>
                                     </p>

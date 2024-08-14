@@ -20,7 +20,9 @@
                                 {% csrf_token %}
                                 {{ form.media }}
                                 {{ form|crispy }}
-                                <button class="btn login-form__btn new-title">add entry</button>
+                                <button class="btn login-form__btn new-title">
+                                    <span>add entry</span>
+                                </button>
                             </form>
                             {% if messages %}
                                 <ul class="messages">
