@@ -17,7 +17,7 @@ from .forms import EntryForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
-from .search import search_authors
+from .search import search_titles, search_authors, search_topics
 
 
 # user can choose random entry count max count is 50
@@ -793,24 +793,35 @@ class SearchView(View):
         query = request.GET.get('query')
         result_data = []
         if query:
-            titles = Title.objects.filter(text__istartswith=query)
-            response = search_authors(query)
-            print(response)
+            topics = search_topics(query)
+            titles = search_titles(query)
+            authors = search_authors(query)
+            if not titles:
+                titles = Title.objects.filter(text__istartswith=query)
+            if not authors:
+                authors = Author.objects.filter(username__istartswith=query)
+            for topic in topics:
+                result_data.append(
+                    {
+                        'id': topic.id,
+                        'text': topic.text,
+                        'category': 0
+                    }
+                )
             for title in titles:
                 result_data.append(
                     {
                         'id': title.id,
                         'text': title.text,
-                        'is_title': True
+                        'category': 1
                     }
                 )
-            authors = Author.objects.filter(username__startswith=query)
             for author in authors:
                 result_data.append(
                     {
                         'id': author.id,
                         'text': author.username,
-                        'is_title': False
+                        'category': 2
                     }
                 )
             result_data = sorted(result_data, key=lambda d: d['text'])

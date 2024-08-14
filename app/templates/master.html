@@ -102,11 +102,15 @@
                         })
                     },
                     renderResult: (result, props) =>{
+                        const topicUrl = "{% url 'app:topic' 0 %}".replace('0', result.id);
                         const userUrl = "{% url 'app:profile' 0 %}".replace('0', result.id);
                         const titleUrl = "{% url 'app:title' 0 %}".replace('0', result.id);
                         var url = titleUrl;
                         var text = result.text;
-                        if(!result.is_title){
+                        if(result.category == 0){
+                            url = topicUrl;
+                            text = '#' + text
+                        }else if(result.category == 2){
                             url = userUrl;
                             text = '@' + text
                         }

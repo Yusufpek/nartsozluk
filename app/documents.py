@@ -42,5 +42,6 @@ class TopicDocument(Document):
         model = Topic
 
         fields = [
+            'id',
             'text'
         ]

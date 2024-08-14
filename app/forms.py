@@ -93,7 +93,7 @@ class ReportForm(forms.Form):
 
 
 class AINewTitleForm(forms.Form):
-    title_count = forms.IntegerField(min_value=1, max_value=5)
+    title_count = forms.IntegerField(min_value=1, max_value=10)
     entry_per_title_count = forms.IntegerField(min_value=1, max_value=10)
 
 
