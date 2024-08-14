@@ -499,6 +499,9 @@ class LoginView(View):
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)
+                next = request.GET.get("next")
+                if next:
+                    return redirect(next)
                 return redirect('app:index')
             else:
                 message = 'login error, username or password is incorrect.'
@@ -750,7 +753,7 @@ class NotFoundView(View):
     context = {}
 
     def get(self, request):
-        return render(request, 'not_found_page.html', self.context)
+        return render(request, '404.html', self.context)
 
 
 class SettingsView(AuthMixin, BaseView):
