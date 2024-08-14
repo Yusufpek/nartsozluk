@@ -930,7 +930,6 @@ class AIView(BaseView):
             if form.is_valid():
                 title_count = form.cleaned_data['title_count']
                 entry_count = form.cleaned_data['entry_per_title_count']
-
                 for _ in range(0, title_count):
                     try:
                         response = ai.create_new_title()
@@ -941,12 +940,11 @@ class AIView(BaseView):
                                 response['entry'],
                                 request.user,
                                 title)
-                            continue
                         else:
                             topic = Topic.objects.filter(
-                                text=response['topic'].lower()).first()
+                                text=response['topic']).first()
                             if not topic:
-                                topic = Topic(text=response['topic'].lower())
+                                topic = Topic(text=response['topic'])
                                 topic.save()
                             title = Title(
                                 text=response['title'],

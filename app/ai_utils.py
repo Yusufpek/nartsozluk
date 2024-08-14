@@ -36,9 +36,9 @@ class AI:
             topic: music, title: 'dolu kadehi terst tut', entries: [
             'en sevdiğim müzik grubu',
             'son single https://www.youtube.com/watch?v=fjpgdivWwt0 olan grup']
-            topic: music, title: 'aleyna tilki', entries: [
-            'Sen Olsan Bari klibiyle tanıdığım sanatçı. Sesine hayranım.',
-            'En bilinen şarkılarından bazıları Sen Olsan Bari']
+            topic: other, title: 'ankara', entries: ['palak kodu 06 olan şehir'
+            , 'odtü, hacettepe, bilkent gibi üniversiteleri bünyesinde
+            bulunduran şehir', '<strong>başkent</strong>']
             you can write the entry content with html content
             (a href, small, italic, bold etc.)
             do not write " ' * or character count etc. to title and topic
@@ -50,8 +50,8 @@ class AI:
             )
         text = response.text
         data = {
-            'topic': text.split('# Topic: ')[1].split('\n')[0],
-            'title': text.split('# Title: ')[1].split('\n')[0],
+            'topic': text.split('# Topic: ')[1].split('\n')[0].lower(),
+            'title': text.split('# Title: ')[1].split('\n')[0].lower(),
             'entry': text.split('# Entry: ')[1].split('\n')[0],
         }
         return data
@@ -88,9 +88,8 @@ class AI:
         response_text = response.text
         data = []
         for text in response_text.split("## Entry: ")[1:]:
-            print("text:", text)
             data.append(text)
-        return data
+        return data[:count]
 
 
 def create_entry(content, user, title):
