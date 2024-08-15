@@ -1,26 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator
 from django_ckeditor_5.fields import CKEditor5Field
 
-from .constants import COUNT_CHOICES
+from authentication.models import Author
 
 
 # Create your models here.
-class Author(AbstractUser):
-    random_entry_count = models.CharField(
-        max_length=2,
-        default='10',
-        choices=COUNT_CHOICES)
-    title_entry_count = models.CharField(
-        max_length=2, default='10', choices=COUNT_CHOICES)
-    profile_image = models.ImageField(
-        upload_to='profile_pictures', default='default.jpg')
-
-    def __str__(self):
-        return self.username
-
-
 class Topic(models.Model):
     text = models.CharField(max_length=50)
     created_by = models.ForeignKey(

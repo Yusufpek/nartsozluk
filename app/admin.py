@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Title, Entry, Author, Vote, Topic, AuthorsFavorites
+from .models import Title, Entry, Vote, Topic, AuthorsFavorites
 
 # Register your models here.
 
@@ -25,7 +25,6 @@ class EntryAdmin(admin.ModelAdmin):
 
 admin.site.register(Title, TitleAdmin)
 admin.site.register(Entry, EntryAdmin)
-admin.site.register(Author)
 admin.site.register(Vote)
 admin.site.register(Topic)
 admin.site.register(AuthorsFavorites)

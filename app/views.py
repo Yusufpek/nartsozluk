@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate, login, logout
 from django.db.models import Max, Count, Q, F, Value
 from django.db.models import FloatField, Case, When, BooleanField
 from django.template.loader import render_to_string
@@ -16,8 +15,7 @@ import random
 
 from .models import Title, Entry, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
-from .forms import LoginForm, SignupForm, SettingsForm
-from .forms import EntryForm, TitleForm, ReportForm
+from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
@@ -143,9 +141,12 @@ class HomeView(BaseView):
                         remaining = count - len(entries)
                 # timeout - in seconds (5 minutes)
                 cache.set('random_entries', entries, timeout=300)
-        entries = self.get_is_fav_attr_entry(entries, request.user)
-        entries = entries.order_by('?')  # shuffle
-        self.context["entries"] = entries
+            else:
+                entries = None
+        if entries:
+            entries = self.get_is_fav_attr_entry(entries, request.user)
+            entries = entries.order_by('?')  # shuffle
+            self.context["entries"] = entries
         self.context['show_title'] = True
         return render(request, 'home_page.html', self.context)
 
@@ -459,66 +460,6 @@ class ProfileView(BaseView):
         self.context['query'] = query
 
         return render(request, 'profile_page.html', self.context)
-
-
-class SignupView(View):
-    form = SignupForm()
-
-    def post(self, request):
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            if (request.user.is_authenticated):
-                logout(request)
-            # form auto hash the password but authenticated wants to raw pass
-            author = form.save(commit=False)
-            password = form.cleaned_data['password1']
-            author.save()
-            user = authenticate(request,
-                                username=author.username,
-                                password=password)
-            if user:
-                login(request, user)
-            return redirect('app:index')
-        else:
-            form = SignupForm(request.POST)
-            return render(request, 'signup_page.html', {'form': form})
-
-    def get(self, request):
-        form = SignupForm()
-        return render(request, 'signup_page.html', {'form': form})
-
-
-class LoginView(View):
-    form = LoginForm()
-
-    def post(self, request):
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user:
-                login(request, user)
-                next = request.GET.get("next")
-                if next:
-                    return redirect(next)
-                return redirect('app:index')
-            else:
-                message = 'login error, username or password is incorrect.'
-                messages.warning(request, message)
-                return render(request, 'login_page.html', {'form': form})
-        else:
-            return render(request, 'login_page.html', {'form': form})
-
-    def get(self, request):
-        form = LoginForm()
-        return render(request, 'login_page.html', {'form': form})
-
-
-class LogoutView(View):
-    def get(self, request):
-        logout(request)
-        return redirect('app:login')
 
 
 class FollowUserView(AuthMixin, BaseView):

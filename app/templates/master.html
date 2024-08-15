@@ -247,7 +247,7 @@
                                         <hr class="my-2">
 
                                         <li>
-                                            <a a class="nav-link link-dark" href="{% url 'app:logout' %}" class='link-dark'>
+                                            <a a class="nav-link link-dark" href="{% url 'authentication:logout' %}" class='link-dark'>
                                                 <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
                                             </a>
                                         </li>
@@ -344,20 +344,20 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:logout' %}">
+                            <a class="nav-link link-light" href="{% url 'authentication:logout' %}">
                                 <i class="bi bi-box-arrow-right"></i>
                                 <span class="nav-text">logout</span>
                             </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:login' %}">
+                            <a class="nav-link link-light" href="{% url 'authentication:login' %}">
                                 <i class="bi bi-box-arrow-in-left"></i>
                                 <span class="nav-text">login</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:signup' %}">
+                            <a class="nav-link link-light" href="{% url 'authentication:signup' %}">
                                 <i class="bi bi-person-circle"></i>
                                 <span class="nav-text">sign up</span>
                             </a>

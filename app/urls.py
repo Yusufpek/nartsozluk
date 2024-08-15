@@ -26,10 +26,6 @@ urlpatterns = [
          views.FollowUserView.as_view(), name="follow-user"),
     path('<int:follow_id>/unfollow',
          views.UnFollowUserView.as_view(), name="unfollow-user"),
-    # authentication pages
-    path('login/', views.LoginView.as_view(), name='login'),
-    path('signup/', views.SignupView.as_view(), name='signup'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
     # title pages
     path('<int:title_id>/latest',
          views.LatestTitleView.as_view(), name="latest-title"),
