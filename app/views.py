@@ -648,7 +648,7 @@ class EntryEditView(AuthMixin, BaseView):
             return redirect('app:not-found')
 
         if request.user != entry.author:
-            return redirect('app:login')
+            return redirect('authentication:login')
 
         form = EntryForm(initial={'content': entry.content})
         self.context['form'] = form
@@ -804,7 +804,7 @@ class AllReportsView(BaseView):
     def get(self, request):
         super().get(request)
         if not request.user.is_staff:
-            return redirect('app:login')
+            return redirect('authentication:login')
         reports = Report.objects.order_by('date')
         self.set_pagination(reports, request)
         return render(request, 'all_reports_page.html', self.context)
@@ -814,7 +814,7 @@ class ReportDeleteView(BaseView):
     def post(self, request):
         # check user
         if not request.user.is_staff:
-            return redirect('app:login')
+            return redirect('authentication:login')
 
         super().get(request)
 
@@ -844,7 +844,7 @@ class ReportDeleteView(BaseView):
 class AIView(BaseView):
     def get(self, request, query):
         if request.user.username != 'bot':
-            return redirect('app:login')
+            return redirect('authentication:login')
         super().get(request)
 
         if query == 0:
@@ -858,7 +858,7 @@ class AIView(BaseView):
 
     def post(self, request, query):
         if request.user.username != 'bot':
-            return redirect('app:login')
+            return redirect('authentication:login')
 
         ai = AI()
         if query == 0:
