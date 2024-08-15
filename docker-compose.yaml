@@ -40,6 +40,8 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ELASTICSEARCH_USER=${ELASTICSEARCH_USER}
       - ELASTICSEARCH_PASS=${ELASTICSEARCH_PASS}
+      - MAIL=${MAIL}
+      - MAIL_PASS=${MAIL_PASS}
     depends_on:
       - db
       - elasticsearch

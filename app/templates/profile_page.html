@@ -16,6 +16,12 @@
                         <i class="bi bi-plus-square"></i> follow
                     </a>
                 </button>
+            {% elif follow == 1 %}
+                <button type="button" class="btn btn-danger mx-5">
+                    <a class="nav-link link-light p-0" href="{% url 'authentication:delete-account'%}">
+                        <i class="bi bi-trash"></i> delete account
+                    </a>
+                </button>
             {% elif follow == 2 %}
                 <div> 
                     <button type="button" class="btn btn-warning mb-2">

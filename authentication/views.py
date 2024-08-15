@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.views import View
 
 from .forms import LoginForm, SignupForm
+from .utils import send_register_email, send_delete_account_email
 
 
 class SignupView(View):
@@ -23,7 +24,9 @@ class SignupView(View):
                                 password=password)
             if user:
                 login(request, user)
-            return redirect('app:index')
+                send_register_email(author.username, author.email)
+                return redirect('app:index')
+            return render(request, 'signup_page.html', {'form': form})
         else:
             form = SignupForm(request.POST)
             return render(request, 'signup_page.html', {'form': form})
@@ -64,3 +67,13 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('authentication:login')
+
+
+class DeleteAccountView(View):
+    def get(self, request):
+        author = request.user
+        name = author.username
+        email = author.email
+        send_delete_account_email(name, email)
+        author.delete()
+        return redirect('authentication:signup')
