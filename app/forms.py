@@ -78,13 +78,30 @@ class AINewTitleForm(forms.Form):
 
 
 class AINewEntryForm(forms.Form):
-    title = forms.ChoiceField()
+    title_id = forms.IntegerField(min_value=1)
     entry_count = forms.IntegerField(min_value=1, max_value=20)
 
-    def __init__(self, *args, **kwargs):
-        super(AINewEntryForm, self).__init__(*args, **kwargs)
-        titles = Title.objects.all().order_by("text")
-        t = []
-        for title in titles:
-            t.append((title.id, title.text))
-        self.fields['title'].choices = tuple(t)
+    def clean(self):
+        id = self.cleaned_data.get('title_id')
+        title = Title.objects.filter(pk=id).first()
+        if not title:
+            raise ValidationError("incorrect entry id")
+        return self.cleaned_data
+
+
+class AINewEntriesLikeAnEntry(forms.Form):
+    entry_id = forms.IntegerField(min_value=1)
+    title_id = forms.IntegerField(min_value=1)
+    entry_count = forms.IntegerField(min_value=1, max_value=20)
+
+    def clean(self):
+        id = self.cleaned_data.get('entry_id')
+        entry = Entry.objects.filter(pk=id).first()
+        if not entry:
+            raise ValidationError("incorrect entry id")
+        else:
+            title_id = self.cleaned_data.get('title_id')
+            title = Title.objects.filter(pk=title_id).first()
+            if not title:
+                raise ValidationError("incorrect title id")
+        return self.cleaned_data

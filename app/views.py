@@ -16,7 +16,7 @@ import random
 from .models import Title, Entry, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
 from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
-from .forms import AINewEntryForm, AINewTitleForm
+from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
@@ -117,7 +117,6 @@ class HomeView(BaseView):
 
         if 'random_entries' in cache:
             entries = cache.get('random_entries')
-            print("random entries in cache deleted")
         else:
             # TODO: delete entry got error here!
             pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
@@ -847,10 +846,12 @@ class AIView(BaseView):
             return redirect('authentication:login')
         super().get(request)
 
-        if query == 0:
+        if query == 0:  # new title and entries
             form = AINewTitleForm()
-        else:
+        elif query == 1:  # new entries to existing tile
             form = AINewEntryForm()
+        elif query == 2:  # new entries to given entry tilte and style
+            form = AINewEntriesLikeAnEntry()
         self.context['form'] = form
         self.context['query'] = query
 
@@ -861,22 +862,18 @@ class AIView(BaseView):
             return redirect('authentication:login')
 
         ai = AI()
-        if query == 0:
+        if query == 0:  # new title and entries
             form = AINewTitleForm(request.POST)
             if form.is_valid():
                 title_count = form.cleaned_data['title_count']
                 entry_count = form.cleaned_data['entry_per_title_count']
-                for _ in range(0, title_count):
+
+                while title_count > 0:
                     try:
                         response = ai.create_new_title()
                         title = Title.objects.filter(
                             text=response['title']).first()
-                        if title:
-                            create_entry(
-                                response['entry'],
-                                request.user,
-                                title)
-                        else:
+                        if not title:
                             topic = Topic.objects.filter(
                                 text=response['topic']).first()
                             if not topic:
@@ -891,19 +888,24 @@ class AIView(BaseView):
                                 id=title.id, text=title.text))
                             create_entry(
                                 response['entry'], request.user, title)
-                        entry_res = ai.get_new_entries_to_title(
-                            title, entry_count-1)
-                        for res in entry_res:
-                            create_entry(res, request.user, title)
+                            entry_res = ai.get_new_entries_to_title(
+                                title, entry_count-1)
+                            for res in entry_res:
+                                create_entry(res, request.user, title)
+                            title_count -= 1
+                        else:
+                            print("-------------------------------")
+                            print('title already exist: ', title)
+                            print("-------------------------------")
                     except Exception as e:
                         print("error while creating: " + str(e))
             else:
                 self.context['form'] = form
-                return render(request, 'new_title_page.html', self.context)
-        else:
+                return render(request, 'ai_page.html', self.context)
+        elif query == 1:  # new entries to existing title
             form = AINewEntryForm(request.POST)
             if form.is_valid():
-                form_title = form.cleaned_data['title']
+                form_title = form.cleaned_data['title_id']
                 entry_count = form.cleaned_data['entry_count']
                 title = Title.objects.filter(pk=form_title).first()
                 if title:
@@ -913,5 +915,21 @@ class AIView(BaseView):
                         create_entry(res, request.user, title)
             else:
                 self.context['form'] = form
-                return render(request, 'new_title_page.html', self.context)
+                return render(request, 'ai_page.html', self.context)
+        elif query == 2:
+            form = AINewEntriesLikeAnEntry(request.POST)
+            self.context['form'] = form
+            if form.is_valid():
+                entry_id = form.cleaned_data['entry_id']
+                form_title = form.cleaned_data['title_id']
+                entry_count = form.cleaned_data['entry_count']
+                entry = Entry.objects.filter(pk=entry_id).first()
+                title = Title.objects.filter(pk=form_title).first()
+                if title and entry:
+                    entry_res = ai.get_entries_like_an_entry(
+                        title, entry, entry_count)
+                    for res in entry_res:
+                        create_entry(res, request.user, title)
+            else:
+                return render(request, 'ai_page.html', self.context)
         return redirect('app:today')

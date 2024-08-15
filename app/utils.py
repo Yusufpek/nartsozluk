@@ -13,7 +13,6 @@ def format_entry_urls(content):
             continue
         formatted_content += content[i]
         showing_text = content[i].split(">")[1].split("<")[0]
-        print(showing_text)
         new_text = ''
         if showing_text.__contains__(URL):
             print("contains")
