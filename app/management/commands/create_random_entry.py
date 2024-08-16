@@ -58,4 +58,4 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 'Successfully created {} tiltes, {} entries'.format(
                     count,
-                    entry_count)))
+                    entry_count * count)))
