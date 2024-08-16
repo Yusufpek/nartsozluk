@@ -23,7 +23,7 @@
                     $('#container-area').html(response.html);
                     // reset colors
                     $('.today-link').removeClass('link-warning').removeClass('link-secondary');
-                    if (query === 1) {
+                    if (response.page === 1) {
                         $('#today-entries').addClass('link-warning');
                         $('#today-titles').addClass('link-secondary');
                     } else {
@@ -40,39 +40,19 @@
 </script>
 
 <div class='d-flex flex-row justify-content-around align-items-center'>
-    <h5><a href='#' id="today-entries"  class='today-link link-warning'>Today's Entries</a></h5>
-    <h5><a href='#' id="today-titles" class='today-link link-secondary'>Today's Titles</a></h5>
+    <h5><a href='#' id="today-entries"  class='today-link {% if is_entries %} link-warning {% else %} link-secondary {% endif %}'>Today's Entries</a></h5>
+    <h5><a href='#' id="today-titles"  class='today-link {% if not is_entries %} link-warning {% else %} link-secondary {% endif %}'>Today's Titles</a></h5>
 </div>
 
 <hr/>
 
 
-{% if page_obj %}
-<span class="step-links">
-        {% if page_obj.object_list %}
-            <div id='container-area'>
-                {% include 'components/entries.html' %}
-            </div>
-                <div class='px-5'>
-                    <div class='d-flex flex-row justify-content-end align-items-center mb-5'>
-                        {% if page_obj.has_previous %}
-                        <a class="btn btn-warning mx-1" href="?page=1">&laquo; first</a>
-                        <a class="btn btn-warning mx-1" href="?page={{ page_obj.previous_page_number }}">previous</a>
-                        {% endif %}
-                        
-                        <span class="current px-1">
-                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                        </span>
-                        
-                        {% if page_obj.has_next %}
-                        <a class="btn btn-warning mx-1" href="?page={{ page_obj.next_page_number }}">next</a>
-                        <a class="btn btn-warning mx-1" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-                        {% endif %}
-                    </div>
-                </div>                
-                {% endif %}
-            </span>
-            {% endif %}
-        </div>
-    </div> 
+<div id='container-area'>
+    {% if is_entries == 1 %}
+        {% include 'components/paginated_entries.html' %}
+    {% else %}
+        {% include 'components/paginated_titles.html' %}
+    {% endif %}
+</div>
+
 {% endblock %}

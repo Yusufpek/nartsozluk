@@ -1,0 +1,27 @@
+{% if page_obj %}
+    <span class="step-links">
+        {% if page_obj.object_list %}
+            <div id='container-area'>
+                {% include 'components/entries.html' %}
+            </div>
+            
+            <div class='px-5'>
+                <div class='d-flex flex-row justify-content-end align-items-center mb-5'>
+                    {% if page_obj.has_previous %}
+                    <a class="btn btn-warning mx-1" href="?page=1">&laquo; first</a>
+                    <a class="btn btn-warning mx-1" href="?page={{ page_obj.previous_page_number }}">previous</a>
+                    {% endif %}
+                    
+                    <span class="current px-1">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                    <a class="btn btn-warning mx-1" href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a class="btn btn-warning mx-1" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>                
+        {% endif %}
+    </span>
+{% endif %}
