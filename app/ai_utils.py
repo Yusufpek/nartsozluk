@@ -1,10 +1,8 @@
 import google.generativeai as genai
 import os
 
-from .models import Entry, Title, Topic
+from .models import Entry, Title
 from .utils import format_entry_urls
-
-import random
 
 
 class AI:
@@ -116,27 +114,3 @@ def create_entry(content, user, title):
     entry.save()
     print('created entry id:{id}, text: {text}'.format(
         id=entry.id, text=entry.content))
-
-
-def create_random_entries(user, count):
-    words = []
-    module_dir = os.path.dirname(__file__)
-    file_path = os.path.join(module_dir, 'words.txt')  # full path to text.
-    with open(file_path, 'r') as file:
-        words = file.readlines()
-
-    for i in range(count):
-        word_count = random.randint(1, 5)
-        random.shuffle(words)
-        title_content = ''
-        for i in range(word_count):
-            title_content += words[i]
-        topic = Topic.objects.filter(text='other').first()
-        title = Title(text=title_content, topic=topic, owner=user)
-        title.save()
-        for j in range(10):
-            entry_content = ''
-            for k in range(random.randint(3, 10)):
-                randomize = random.randint(50, 120)
-                entry_content += words[-(i+j+k+randomize)]
-            create_entry(entry_content, user, title)
