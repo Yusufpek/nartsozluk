@@ -1,5 +1,5 @@
 from django.db.models import Max, Count, Q, F, Value
-from django.db.models import FloatField, Case, When, BooleanField
+from django.db.models import Case, When, BooleanField
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
@@ -335,29 +335,36 @@ class TodayView(BaseView):
     def get(self, request):
         super().get(request)
 
-        titles = Title.objects.filter(created_at__day=timezone.now().day)
-        titles = titles.order_by('-created_at')
-        entries = Entry.objects.filter(
-            created_at__day=timezone.now().day).order_by('-created_at')
-
         query = int(request.GET.get('query', 1))
+
         if query == 1:
+            entries = Entry.objects.filter(
+                created_at__day=timezone.now().day).order_by('-pk')
             entries = self.get_is_fav_attr_entry(entries, request.user)
             self.set_pagination(entries, request)
         else:
+            titles = Title.objects.filter(created_at__day=timezone.now().day)
+            titles = titles.order_by('-created_at')
             self.set_pagination(titles, request)
 
         self.context['show_title'] = True
+        self.context['is_entries'] = (query == 1)
 
         # ajax request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             if query == 1:
                 html = render_to_string(
-                    'components/entries.html', self.context, request=request)
+                    'components/paginated_entries.html',
+                    self.context,
+                    request=request)
+                return JsonResponse({'html': html, 'page': 1})
             else:
                 html = render_to_string(
-                    'components/titles.html', self.context, request=request)
-            return JsonResponse({'html': html})
+                    'components/paginated_titles.html',
+                    self.context,
+                    request=request)
+                return JsonResponse({'html': html, 'page': 2})
+        print('is_entries:', self.context['is_entries'])
         return render(request, 'today_page.html', self.context)
 
 
@@ -400,25 +407,28 @@ class ProfileView(BaseView):
         super().get(request)
 
         # distinct=True meaning is each unique row is only counted once.
-        author = Author.objects.filter(
-            pk=author_id
-        ).annotate(
-            entry_count=Count('entry', distinct=True),
-            title_count=Count('title', distinct=True),
-            follower_count=Count('followers', distinct=True),
-            total_votes=Count('entry__vote', distinct=True),
-            up_votes=Count('entry__vote',
-                           filter=Q(entry__vote__is_up=True), distinct=True),
-            ).annotate(
-                upvote_ratio=Case(
-                    When(total_votes=0, then=Value(0)),
-                    default=(F('up_votes') * 100 / F('total_votes')),
-                    output_field=FloatField())).first()
+        print("here :)")
+
+        author = Author.objects.filter(pk=author_id).first()
         if not author:
             return redirect('app:not-found')
 
-        if author.total_votes == 0:
-            author.upvote_ratio = 0
+        print("db fetch user stats")
+        author.entry_count = Entry.objects.filter(author=author).count()
+        author.title_count = Title.objects.filter(owner=author).count()
+        author.follower_count = FollowAuthor.objects.filter(
+            follow=author).count()
+        author.vote_count = Vote.objects.filter(
+            entry__author=author).count()
+        author.up_vote_count = Vote.objects.filter(
+            entry__author=author,
+            is_up=True).count()
+        author.save()
+        vote_ratio = 0
+        if author.vote_count:
+            vote_ratio = author.up_vote_count * 100 / author.vote_count
+        self.context['vote_ratio'] = "{:.2f}".format(vote_ratio)
+
         self.context['author'] = author
 
         follow = 0  # can follow
@@ -440,12 +450,11 @@ class ProfileView(BaseView):
         if query == 1:
             user_entries = Entry.objects.filter(author=author)
             user_entries = self.get_is_fav_attr_entry(
-                user_entries, request.user).order_by(
-                    '-created_at')
+                user_entries, request.user).order_by('-pk')
             self.set_pagination(user_entries, request)
         elif query == 2:
             user_titles = Title.objects.filter(
-                owner=author).order_by('-created_at')
+                owner=author).order_by('-pk')
             self.set_pagination(user_titles, request)
         elif query == 3:
             follows = FollowAuthor.objects.filter(follow=author)
