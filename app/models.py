@@ -18,7 +18,7 @@ class Topic(models.Model):
 
 class Title(models.Model):
     text = models.CharField(max_length=100, validators=[MinLengthValidator(3)])
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     owner = models.ForeignKey(Author, null=True, on_delete=models.SET_NULL)
     topic = models.ForeignKey(
         Topic, null=True, blank=True, on_delete=models.SET_NULL)
@@ -29,10 +29,14 @@ class Title(models.Model):
 
 class Entry(models.Model):
     content = CKEditor5Field(max_length=2000, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(Author,  null=True, on_delete=models.SET_NULL)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['created_at', 'author'])]
 
     def is_edited(self):
         compare_created_at = self.created_at.strftime("%B %d %Y - %I:%M %p")
