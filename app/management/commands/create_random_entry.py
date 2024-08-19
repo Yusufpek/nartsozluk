@@ -45,7 +45,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         count = options["count"][0]
-        entry_count = options["entry_count"][0]
+        try:
+            entry_count = options["entry_count"][0]
+        except:  # noqa: E722 - ignore exception
+            self.stdout.write(self.style.WARNING("Entry count set default 10"))
+            entry_count = 10
         if not entry_count:
             entry_count = 10
         try:
