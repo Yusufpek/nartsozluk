@@ -1,24 +1,38 @@
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django_ckeditor_5.fields import CKEditor5Field
+from timescale.db.models.fields import TimescaleDateTimeField
+from timescale.db.models.managers import TimescaleManager
+
 
 from authentication.models import Author
 
 
+class TimescaleModel(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    created_at = TimescaleDateTimeField(
+        interval="1 day",
+        auto_now_add=True,
+        primary_key=False)
+    objects = TimescaleManager()
+
+    class Meta:
+        abstract = True
+        unique_together = (('id', 'created_at'),)
+
+
 # Create your models here.
-class Topic(models.Model):
+class Topic(TimescaleModel):
     text = models.CharField(max_length=50)
     created_by = models.ForeignKey(
         Author, null=True, blank=True, on_delete=models.SET_NULL)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.text
 
 
-class Title(models.Model):
+class Title(TimescaleModel):
     text = models.CharField(max_length=100, validators=[MinLengthValidator(3)])
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     owner = models.ForeignKey(Author, null=True, on_delete=models.SET_NULL)
     topic = models.ForeignKey(
         Topic, null=True, blank=True, on_delete=models.SET_NULL)
@@ -27,9 +41,9 @@ class Title(models.Model):
         return self.text
 
 
-class Entry(models.Model):
+class Entry(TimescaleModel):
+    id = models.AutoField(primary_key=True)
     content = CKEditor5Field(max_length=2000, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(Author,  null=True, on_delete=models.SET_NULL)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)

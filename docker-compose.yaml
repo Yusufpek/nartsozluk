@@ -2,7 +2,7 @@ version: "3.12"
 
 services:
   db:
-    image: postgres
+    image: timescale/timescaledb-ha:pg16
     platform: linux/amd64
     volumes:
       - ./data/db:/var/lib/postgresql/data

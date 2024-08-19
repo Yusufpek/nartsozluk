@@ -29,7 +29,6 @@ class TitleDocument(Document):
         fields = [
             'id',
             'text',
-            'created_at',
         ]
 
 

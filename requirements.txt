@@ -13,6 +13,7 @@ django-ckeditor-5==0.2.13
 django-crispy-forms==2.3
 django-elasticsearch-dsl==7.4
 django-redis==5.4.0
+django-timescaledb==0.2.13
 elastic-transport==8.13.1
 elasticsearch==7.9.0
 elasticsearch-dsl==7.4.1
