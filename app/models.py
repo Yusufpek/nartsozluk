@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django_ckeditor_5.fields import CKEditor5Field
@@ -9,30 +11,30 @@ from authentication.models import Author
 
 
 class TimescaleModel(models.Model):
-    id = models.BigAutoField(primary_key=True)
     created_at = TimescaleDateTimeField(
         interval="1 day",
-        auto_now_add=True,
-        primary_key=False)
+        auto_now_add=True)
     objects = TimescaleManager()
 
     class Meta:
         abstract = True
-        unique_together = (('id', 'created_at'),)
+        unique_together = (('uid', 'created_at'),)
 
 
 # Create your models here.
-class Topic(TimescaleModel):
+class Topic(models.Model):
     text = models.CharField(max_length=50)
     created_by = models.ForeignKey(
         Author, null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.text
 
 
-class Title(TimescaleModel):
+class Title(models.Model):
     text = models.CharField(max_length=100, validators=[MinLengthValidator(3)])
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     owner = models.ForeignKey(Author, null=True, on_delete=models.SET_NULL)
     topic = models.ForeignKey(
         Topic, null=True, blank=True, on_delete=models.SET_NULL)
@@ -42,7 +44,7 @@ class Title(TimescaleModel):
 
 
 class Entry(TimescaleModel):
-    id = models.AutoField(primary_key=True)
+    uid = models.UUIDField(default=uuid.uuid4, editable=False)
     content = CKEditor5Field(max_length=2000, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(Author,  null=True, on_delete=models.SET_NULL)
@@ -62,17 +64,17 @@ class Entry(TimescaleModel):
 
 
 class Vote(models.Model):
-    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    entry_id = models.UUIDField()
     voter = models.ForeignKey(Author, on_delete=models.CASCADE)
     is_up = models.BooleanField(default=True)
 
 
 class AuthorsFavorites(models.Model):
-    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    entry_id = models.UUIDField()
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('entry', 'author')  # for no duplicate favorites
+        unique_together = ('entry_id', 'author')  # for no duplicate favorites
 
 
 class FollowAuthor(models.Model):
@@ -93,10 +95,10 @@ class FollowTitle(models.Model):
 
 
 class Report(models.Model):
-    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    entry_uid = models.UUIDField()
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(Author, on_delete=models.CASCADE)
     description = models.CharField(max_length=500)
 
     def __str__(self):
-        return self.description + '- entry: ' + str(self.entry.id)
+        return self.description + '- entry: ' + str(self.entry_uid)

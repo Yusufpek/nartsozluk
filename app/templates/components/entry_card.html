@@ -29,21 +29,21 @@
             </small>
             {% if request.user.is_authenticated and 'report' not in request.path %}
             <div class="media-reply__link">
-                <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.id }}" data-up="1"  style="color: initial;">
+                <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.uid }}" data-up="1"  style="color: initial;">
                     <i class="bi bi-arrow-up">
                         {% if not show_title %}
                         {{entry.up_votes_count}}
                         {% endif %}
                     </i>
                 </button>
-                <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.id }}" data-up="0"  style="color: initial;">
+                <button class="btn btn-transparent p-0 mr-3 vote-button btn-light" data-entry-id="{{ entry.uid }}" data-up="0"  style="color: initial;">
                     <i class="bi bi-arrow-down">
                         {% if not show_title %}
                         {{entry.down_votes_count}}
                         {% endif %}
                     </i>
                 </button>
-                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 favorite-button" data-entry-id="{{ entry.id }}"style="color: initial;">
+                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 favorite-button" data-entry-id="{{ entry.uid }}"style="color: initial;">
                     {% if entry.is_fav %}
                     <i class="bi bi-bookmark-heart-fill" style="color: orange;"></i>
                     {% else %}
@@ -56,23 +56,23 @@
                         </button>
                         <div class="dropdown-menu">
                             {% if request.user == entry.author %}
-                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.id }}"style="color: initial;">
-                                    <a href="{% url 'app:edit-entry' entry.id%}" class='link-light'>
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.uid }}"style="color: initial;">
+                                    <a href="{% url 'app:edit-entry' entry.uid%}" class='link-light'>
                                         <i class="bi bi-pencil"> edit entry</i>
                                     </a>
                                 </button>
                             {% endif %}
                             {% if request.user == entry.author or request.user.is_staff %}
-                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button trash" data-entry-id="{{ entry.id }}" style="color: initial;">
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button trash" data-entry-id="{{ entry.uid }}" style="color: initial;">
                                     <i class="bi bi-trash"> delete entry</i>
                                 </button>
                             {% endif %}
-                            <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 copy-url-button" data-entry-id="{{ entry.id }}" style="color: initial;">
+                            <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 copy-url-button" data-entry-id="{{ entry.uid }}" style="color: initial;">
                                 <i class="bi bi-clipboard"> copy entry url</i>
                             </button>
                             {% if entry.author != request.user %}
-                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 report-button" data-entry-id="{{ entry.id }}" style="color: initial;">
-                                    <a href="{% url 'app:report' entry.id %}" class='link-light'>
+                                <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 report-button" data-entry-id="{{ entry.uid }}" style="color: initial;">
+                                    <a href="{% url 'app:report' entry.uid %}" class='link-light'>
                                         <i class="bi bi-clipboard"> report entry</i>
                                     </a>
                                 </button>

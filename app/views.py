@@ -1,5 +1,5 @@
-from django.db.models import Max, Count, Q, F, Value
-from django.db.models import Case, When, BooleanField
+from django.db.models import Max, Count, Q, F, Value, OuterRef
+from django.db.models import Case, When, BooleanField, Subquery, IntegerField
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
@@ -10,6 +10,7 @@ from django.views import View
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.db.models.functions import Coalesce
 
 import random
 
@@ -55,7 +56,7 @@ class BaseView(View):
         if request.user.is_authenticated:
             follows = FollowAuthor.objects.filter(
                 follow=request.user).order_by('-follow_date')[:3]
-            user_ids = follows.values_list('user_id', flat='anonymous')
+            user_ids = follows.values_list('id', flat='anonymous')
             users = Author.objects.filter(pk__in=user_ids)
             self.context['last_follows'] = follows
             self.context['last_followers_count'] = users.count()
@@ -77,21 +78,44 @@ class BaseView(View):
 
     def get_is_fav_attr_entry(self, base_manager, user):
         if (user.is_authenticated):
+            uids = base_manager.values_list('uid', flat=True)
+            print("uidss", uids)
+            fav_ids = AuthorsFavorites.objects.filter(
+                entry_id__in=uids, author=user
+                ).values_list('entry_id', flat=True)
+            print("favs", fav_ids)
             return base_manager.annotate(
                 is_fav=Case(
-                    When(authorsfavorites__author=user, then=Value(True)),
+                    When(uid__in=fav_ids, then=Value(True)),
                     default=Value(False), output_field=BooleanField()))
         else:
             return base_manager
 
     def get_vote_counts_entry(self, base_manager):
+        up_votes_subquery = Vote.objects.filter(
+            entry_id=OuterRef('uid'), is_up=True
+            ).values('entry_id').annotate(
+                count=Count('id')).values('count')
+        down_votes_subquery = Vote.objects.filter(
+            entry_id=OuterRef('uid'), is_up=False
+            ).values('entry_id').annotate(
+                count=Count('id')).values('count')
+
         return base_manager.annotate(
-            up_votes_count=Count('vote', filter=Q(vote__is_up=True)),
-            down_votes_count=Count('vote', filter=Q(vote__is_up=False)),
+            up_votes_count=Coalesce(
+                Subquery(up_votes_subquery, output_field=IntegerField()), 0),
+            down_votes_count=Coalesce(
+                Subquery(down_votes_subquery, output_field=IntegerField()), 0)
         )
 
     def get_fav_counts_entry(self, base_manager):
-        return base_manager.annotate(fav_count=Count('authorsfavorites'))
+        fav_subquery = AuthorsFavorites.objects.filter(
+            entry_id=OuterRef('uid')
+            ).values('entry_id').annotate(
+                count=Count('id')).values('count')
+        return base_manager.annotate(
+            fav_count=Coalesce(
+                Subquery(fav_subquery, output_field=IntegerField()), 0))
 
     def set_pagination(self, base_manager, request):
         paginator = Paginator(base_manager, self.ENTRY_COUNT)
@@ -267,13 +291,12 @@ class FollowView(AuthMixin, BaseView):
         if (query == 1):
             entries = Entry.objects.filter(author_id__in=author_ids)
         else:
-            entries = Entry.objects.filter(
-                authorsfavorites__author__in=author_ids)
+            favs = AuthorsFavorites.objects.filter(
+                author__in=author_ids).values_list('entry_id', flat=True)
+            entries = Entry.objects.filter(uid__in=favs)
 
-        entries = entries.annotate(is_fav=Case(
-                When(authorsfavorites__author=request.user, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()))
+        entries = self.get_is_fav_attr_entry(entries, request.user)
+
         self.context['entries'] = entries.order_by('-created_at')
         self.context['show_title'] = True
 
@@ -289,10 +312,10 @@ class FollowView(AuthMixin, BaseView):
 class FavView(AuthMixin, BaseView):
     def get(self, request):
         super().get(request)
-
-        entries = Entry.objects.filter(
-            authorsfavorites__author=request.user
-            ).annotate(is_fav=Value(True, output_field=BooleanField()))
+        favs = AuthorsFavorites.objects.filter(
+            author=request.user).values_list('entry_id')
+        entries = Entry.objects.filter(uid__in=favs).annotate(
+            is_fav=Value(True, output_field=BooleanField()))
         self.context['entries'] = entries.order_by('-created_at')
         self.context['show_title'] = True
 
@@ -378,6 +401,7 @@ class LDMVViews(CacheHeaderMixin, BaseView):
         entries = Entry.objects.filter(created_at__day=yesterday)
         entries = self.get_vote_counts_entry(entries)
         entries = self.get_fav_counts_entry(entries)
+        entries = self.get_is_fav_attr_entry(entries, request.user)
         entries = entries.annotate(
             vote_point=(
                 (F('up_votes_count') * 5) +
@@ -418,10 +442,12 @@ class ProfileView(BaseView):
         author.title_count = Title.objects.filter(owner=author).count()
         author.follower_count = FollowAuthor.objects.filter(
             follow=author).count()
+        entry_ids = Entry.objects.filter(
+            author=author).values_list('uid', flat=True)
         author.vote_count = Vote.objects.filter(
-            entry__author=author).count()
+            entry_id__in=entry_ids).count()
         author.up_vote_count = Vote.objects.filter(
-            entry__author=author,
+            entry_id__in=entry_ids,
             is_up=True).count()
         author.save()
         vote_ratio = 0
@@ -633,10 +659,10 @@ class DeleteEntryView(AuthMixin, BaseView):
 
         entry_id = request.POST.get('entry_id')
         if request.user.is_staff:
-            entry = Entry.objects.filter(pk=entry_id).first()
+            entry = Entry.objects.filter(uid=entry_id).first()
         else:
             entry = Entry.objects.filter(
-                pk=entry_id, author=request.user).first()
+                uid=entry_id, author=request.user).first()
 
         if entry:
             entry.delete()
@@ -651,7 +677,7 @@ class EntryEditView(AuthMixin, BaseView):
     def get(self, request, entry_id):
         super().get(request)
 
-        entry = Entry.objects.filter(pk=entry_id).first()
+        entry = Entry.objects.filter(uid=entry_id).first()
         if not entry:
             return redirect('app:not-found')
 
@@ -669,7 +695,7 @@ class EntryEditView(AuthMixin, BaseView):
         if form.is_valid():
             entry_content = form.cleaned_data['content']
             entry = Entry.objects.filter(
-                pk=entry_id, author=request.user).first()
+                uid=entry_id, author=request.user).first()
             if not entry:
                 return redirect('app:not-found')
             else:
@@ -687,7 +713,7 @@ class EntryView(BaseView):
     def get(self, request, entry_id):
         super().get(request)
 
-        entry = Entry.objects.filter(pk=entry_id)
+        entry = Entry.objects.filter(uid=entry_id)
         if not entry:
             return redirect('app:not-found')
 
@@ -780,7 +806,7 @@ class SearchView(View):
 
 class ReportView(AuthMixin, BaseView):
     def post(self, request, entry_id):
-        entry = Entry.objects.filter(pk=entry_id).first()
+        entry = Entry.objects.filter(uid=entry_id).first()
         if not entry:
             return redirect('app:not-found')
         self.context['entry'] = entry
@@ -788,7 +814,9 @@ class ReportView(AuthMixin, BaseView):
         form = ReportForm(request.POST)
         if form.is_valid():
             text = form.cleaned_data['text']
-            report = Report(description=text, entry=entry, user=request.user)
+            report = Report(description=text,
+                            entry_id=entry.uid,
+                            user=request.user)
             report.save()
             return redirect('app:index')
         else:
@@ -798,7 +826,7 @@ class ReportView(AuthMixin, BaseView):
     def get(self, request, entry_id):
         super().get(request)
 
-        entry = Entry.objects.filter(pk=entry_id).first()
+        entry = Entry.objects.filter(uid=entry_id).first()
         if not entry:
             return redirect('app:not-found')
         self.context['entry'] = entry
@@ -932,7 +960,7 @@ class AIView(BaseView):
                 entry_id = form.cleaned_data['entry_id']
                 form_title = form.cleaned_data['title_id']
                 entry_count = form.cleaned_data['entry_count']
-                entry = Entry.objects.filter(pk=entry_id).first()
+                entry = Entry.objects.filter(uid=entry_id).first()
                 title = Title.objects.filter(pk=form_title).first()
                 if title and entry:
                     entry_res = ai.get_entries_like_an_entry(
