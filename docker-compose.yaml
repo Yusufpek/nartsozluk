@@ -5,11 +5,13 @@ services:
     image: timescale/timescaledb-ha:pg16
     platform: linux/amd64
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - /data/db:/var/lib/postgresql/data
+      - /data/db_backups:/var/lib/postgresql/backups
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    restart: on-failure
 
   elasticsearch:
     image: elasticsearch:7.8.1
@@ -27,7 +29,12 @@ services:
 
   web:
     build: .
-    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      bash -c "
+        python manage.py makemigrations &&
+        python manage.py migrate --noinput &&
+        python manage.py runserver 0.0.0.0:8000
+      "
     volumes:
       - .:/code
     ports:
@@ -47,6 +54,3 @@ services:
       - elasticsearch
       - redis
 
-volumes:
-  db:
-  elasticsearch:
