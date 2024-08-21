@@ -74,5 +74,8 @@ services:
     command: celery -A nartsozluk worker --loglevel=info
     volumes:
       - .:/code
+    environment:
+      - MAIL=${MAIL}
+      - MAIL_PASS=${MAIL_PASS}
     depends_on:
       - rabbitmq
