@@ -1,15 +1,9 @@
 from django.contrib import admin
 
-from .models import Title, Vote, Topic, AuthorsFavorites
+from .models import Entry
+
 
 # Register your models here.
-
-
-class TitleAdmin(admin.ModelAdmin):
-    list_display = ["text", "created_at"]
-    list_filter = ["created_at"]
-
-
 class EntryAdmin(admin.ModelAdmin):
     list_display = ["content", "title", "author"]
     fieldsets = [
@@ -23,7 +17,4 @@ class EntryAdmin(admin.ModelAdmin):
     list_filter = ["created_at", "updated_at"]
 
 
-admin.site.register(Title, TitleAdmin)
-admin.site.register(Vote)
-admin.site.register(Topic)
-admin.site.register(AuthorsFavorites)
+admin.site.register(Entry, EntryAdmin)

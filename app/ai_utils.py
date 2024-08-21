@@ -1,7 +1,8 @@
 import google.generativeai as genai
 import os
 
-from .models import Entry, Title
+from entry.models import Entry
+from .models import Title
 from .utils import format_entry_urls
 
 

@@ -2,7 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django_ckeditor_5.widgets import CKEditor5Widget
 
-from .models import Author, Topic, Title, Entry
+from entry.models import Entry
+from .models import Author, Topic, Title
 from .utils import format_entry_urls, content_is_empty
 
 
