@@ -31,7 +31,7 @@
             console.log('click');
 
             $.ajax({
-                url: "{% url 'entry:vote' %}",  // The URL of your upvote view
+                url: "{% url 'app:vote' %}",  // The URL of your upvote view
                 method: 'POST',
                 data: {
                     'entry_id': entryId,
@@ -73,7 +73,7 @@
             const button = $(this);
 
             $.ajax({
-                url: "{% url 'entry:fav-entry' %}",  // The URL of your favorite view
+                url: "{% url 'app:fav-entry' %}",  // The URL of your favorite view
                 method: 'POST',
                 data: {
                     'entry_id': entryId,
@@ -111,7 +111,7 @@
         $('#confirmDelete').click(function() {
             const entryId = $('#confirmDeleteModal').data('entry-id');
             $.ajax({
-                url: "{% url 'entry:delete-entry' %}",  // The URL of your delete view
+                url: "{% url 'app:delete-entry' %}",  // The URL of your delete view
                 method: 'POST',
                 data: {
                     'entry_id': entryId,
