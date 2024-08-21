@@ -1,7 +1,8 @@
+import os
 from django.core.mail import send_mail
 
 
-SENDER_EMAIL = 'hargetdev@gmail.com'
+SENDER_EMAIL = os.environ.get("MAIL")
 
 
 def send_register_email(username, email):
@@ -22,9 +23,9 @@ def send_register_email(username, email):
             from_email=SENDER_EMAIL,
             recipient_list=[email]
         )
-        print("email sent to: ", email)
+        return "email sent to: " + email
     except Exception as e:
-        print("Error sending email: ", e)
+        return "Error sending email: " + str(e)
 
 
 def send_delete_account_email(username, email):
@@ -47,5 +48,7 @@ def send_delete_account_email(username, email):
             recipient_list=[email]
         )
         print("email sent to: ", email)
+        return True
     except Exception as e:
         print("Error sending email: ", e)
+        return False
