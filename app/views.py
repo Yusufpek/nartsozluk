@@ -21,6 +21,7 @@ from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
+from .tasks import create_ai_title_task
 
 
 # user can choose random entry count max count is 50
@@ -138,6 +139,8 @@ class HomeView(BaseView):
     def get(self, request):
         super().get(request)
         self.get_entry_count(request, is_title=False)
+
+        # create_random_entries_task.delay_on_commit(10)
 
         if 'random_entries' in cache:
             entries = cache.get('random_entries')
@@ -904,38 +907,10 @@ class AIView(BaseView):
             if form.is_valid():
                 title_count = form.cleaned_data['title_count']
                 entry_count = form.cleaned_data['entry_per_title_count']
-
-                while title_count > 0:
-                    try:
-                        response = ai.create_new_title()
-                        title = Title.objects.filter(
-                            text=response['title']).first()
-                        if not title:
-                            topic = Topic.objects.filter(
-                                text=response['topic']).first()
-                            if not topic:
-                                topic = Topic(text=response['topic'])
-                                topic.save()
-                            title = Title(
-                                text=response['title'],
-                                topic=topic,
-                                owner=request.user)
-                            title.save()
-                            print('created title id:{id}, text: {text}'.format(
-                                id=title.id, text=title.text))
-                            create_entry(
-                                response['entry'], request.user, title)
-                            entry_res = ai.get_new_entries_to_title(
-                                title, entry_count-1)
-                            for res in entry_res:
-                                create_entry(res, request.user, title)
-                            title_count -= 1
-                        else:
-                            print("-------------------------------")
-                            print('title already exist: ', title)
-                            print("-------------------------------")
-                    except Exception as e:
-                        print("error while creating: " + str(e))
+                print('task')
+                create_ai_title_task.delay_on_commit(
+                    title_count,
+                    entry_count)
             else:
                 self.context['form'] = form
                 return render(request, 'ai_page.html', self.context)

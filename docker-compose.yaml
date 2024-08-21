@@ -75,6 +75,10 @@ services:
     volumes:
       - .:/code
     environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
       - MAIL=${MAIL}
       - MAIL_PASS=${MAIL_PASS}
     depends_on:
