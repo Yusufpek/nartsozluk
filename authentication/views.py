@@ -5,6 +5,7 @@ from django.views import View
 
 from .forms import LoginForm, SignupForm
 from .utils import send_register_email, send_delete_account_email
+from .tasks import my_task
 
 
 class SignupView(View):
@@ -24,6 +25,7 @@ class SignupView(View):
                                 password=password)
             if user:
                 login(request, user)
+                my_task.delay_on_commit(1, 2)
                 send_register_email(author.username, author.email)
                 return redirect('app:index')
             return render(request, 'signup_page.html', {'form': form})

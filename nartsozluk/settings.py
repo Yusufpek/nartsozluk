@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'django_ckeditor_5',
     'django_elasticsearch_dsl',
+    'celery',
     'authentication',
     'app'
 ]
@@ -83,7 +84,7 @@ WSGI_APPLICATION = 'nartsozluk.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'timescale.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_NAME'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
@@ -188,3 +189,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get("MAIL")
 EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASS")
+
+CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'

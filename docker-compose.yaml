@@ -54,3 +54,25 @@ services:
       - elasticsearch
       - redis
 
+  rabbitmq:
+    restart: always
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    expose:
+      - "5672"
+    environment:
+      RABBITMQ_DEFAULT_VHOST: "/"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+
+  celery:
+    image: celery_api:latest
+    working_dir: /code/
+    build: .
+    command: celery -A nartsozluk worker --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - rabbitmq
