@@ -11,6 +11,7 @@ from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models.functions import Coalesce
+from celery.result import AsyncResult
 
 import random
 
@@ -80,7 +81,6 @@ class BaseView(View):
     def get_is_fav_attr_entry(self, base_manager, user):
         if (user.is_authenticated):
             uids = base_manager.values_list('uid', flat=True)
-            print("uidss", uids)
             fav_ids = AuthorsFavorites.objects.filter(
                 entry_id__in=uids, author=user
                 ).values_list('entry_id', flat=True)
@@ -966,9 +966,11 @@ class SpammerView(AuthMixin, BaseView):
             title_count = form.cleaned_data['title_count']
             entry_count = form.cleaned_data['entry_per_title_count']
             print('task')
-            create_random_entries_task.delay_on_commit(
+            res = create_random_entries_task.delay(
                 title_count,
                 entry_count)
+            result = AsyncResult(res.id)
+            print("state:", result.state)
         else:
             self.context['form'] = form
             return render(request, 'ai_page.html', self.context)

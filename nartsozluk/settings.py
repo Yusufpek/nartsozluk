@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'django_ckeditor_5',
     'django_elasticsearch_dsl',
+    'django_celery_results',
     'celery',
     'authentication',
     'app'
@@ -191,3 +192,4 @@ EMAIL_HOST_USER = os.environ.get("MAIL")
 EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASS")
 
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'

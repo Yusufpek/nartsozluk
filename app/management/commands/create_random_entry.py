@@ -33,6 +33,7 @@ class Command(BaseCommand):
                 for k in range(random.randint(3, 10)):
                     randomize = random.randint(50, 120)
                     entry_content += words[-(i+j+k+randomize)]
+                    entry_content = entry_content.replace('\n', ' ')
                 entry = Entry(
                     content=entry_content,
                     author=user,
