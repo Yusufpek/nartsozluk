@@ -16,7 +16,7 @@ import random
 
 from .models import Title, Entry, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
-from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
+from .forms import SettingsForm, EntryForm, TitleForm, ReportForm, NewTitleForm
 from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
@@ -952,7 +952,7 @@ class SpammerView(AuthMixin, BaseView):
         if request.user.username != 'bot':
             return redirect('authentication:login')
         super().get(request)
-        form = AINewTitleForm()
+        form = NewTitleForm()
         self.context['form'] = form
 
         return render(request, 'spam_page.html', self.context)
@@ -961,7 +961,7 @@ class SpammerView(AuthMixin, BaseView):
         if request.user.username != 'bot':
             return redirect('authentication:login')
 
-        form = AINewTitleForm(request.POST)
+        form = NewTitleForm(request.POST)
         if form.is_valid():
             title_count = form.cleaned_data['title_count']
             entry_count = form.cleaned_data['entry_per_title_count']

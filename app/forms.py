@@ -105,3 +105,8 @@ class AINewEntriesLikeAnEntry(forms.Form):
             if not title:
                 raise ValidationError("incorrect title id")
         return self.cleaned_data
+
+
+class NewTitleForm(AINewTitleForm):
+    title_count = forms.IntegerField(min_value=1, max_value=50000)
+    entry_per_title_count = forms.IntegerField(min_value=1, max_value=30)
