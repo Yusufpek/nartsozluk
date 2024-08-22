@@ -1,0 +1,44 @@
+{% extends "master.html" %}
+
+{% load static %}
+{% load crispy_forms_tags %} 
+
+{% block content %}
+
+<div class='d-flex flex-row justify-content-around align-items-center'>
+    <h5><a href="{% url 'app:ai-bot' 0%}" id="follow-entries" class='follow-link link-warning'>Random Generated New Title and Entries</a></h5>
+</div>
+
+<hr/>
+
+<div class="login-form-bg h-100">
+    <div class="container h-100">
+        <div class="row justify-content-center h-100">
+            <div class="col-xl-8">
+                <div class="form-input-content">
+                    <div class="card login-form mb-0">
+                        <div class="card-body pt-5">
+                            <h5>create random generated titles :) {{title}}</h5>
+                            <form enctype="multipart/form-data" class="mt-5 mb-5 login-input" method="POST">
+                                {% csrf_token %}
+                                {{ form|crispy }}
+                                <button class="btn login-form__btn new-title">
+                                    <span>create</span>
+                                </button>
+                            </form>
+                            {% if messages %}
+                                <ul class="messages">
+                                    {% for message in messages %}
+                                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -21,7 +21,7 @@ from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
-from .tasks import create_ai_title_task
+from .tasks import create_ai_title_task, create_random_entries_task
 
 
 # user can choose random entry count max count is 50
@@ -944,4 +944,32 @@ class AIView(BaseView):
                         create_entry(res, request.user, title)
             else:
                 return render(request, 'ai_page.html', self.context)
+        return redirect('app:today')
+
+
+class SpammerView(AuthMixin, BaseView):
+    def get(self, request):
+        if request.user.username != 'bot':
+            return redirect('authentication:login')
+        super().get(request)
+        form = AINewTitleForm()
+        self.context['form'] = form
+
+        return render(request, 'spam_page.html', self.context)
+
+    def post(self, request):
+        if request.user.username != 'bot':
+            return redirect('authentication:login')
+
+        form = AINewTitleForm(request.POST)
+        if form.is_valid():
+            title_count = form.cleaned_data['title_count']
+            entry_count = form.cleaned_data['entry_per_title_count']
+            print('task')
+            create_random_entries_task.delay_on_commit(
+                title_count,
+                entry_count)
+        else:
+            self.context['form'] = form
+            return render(request, 'ai_page.html', self.context)
         return redirect('app:today')

@@ -6,8 +6,11 @@ from .models import Title, Topic, Author
 
 
 @shared_task
-def create_random_entries_task(count):
-    management.call_command('create_random_entry', count=[count])
+def create_random_entries_task(count, entry_count):
+    management.call_command(
+        'create_random_entry',
+        count=[count],
+        entry_count=[entry_count])
     return True
 
 
