@@ -110,3 +110,16 @@ class AINewEntriesLikeAnEntry(forms.Form):
 class NewTitleForm(AINewTitleForm):
     title_count = forms.IntegerField(min_value=1, max_value=50000)
     entry_per_title_count = forms.IntegerField(min_value=1, max_value=30)
+
+
+class NewTopicForm(forms.ModelForm):
+    class Meta:
+        model = Topic
+        fields = ['text']
+
+    def clean(self):
+        text = self.cleaned_data.get('text')
+        topic = Topic.objects.filter(text=text).first()
+        if topic:
+            raise ValidationError("existing topic")
+        return self.cleaned_data
