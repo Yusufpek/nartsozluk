@@ -1,0 +1,64 @@
+{% extends "master.html" %}
+{% load static %} 
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="active-member">
+                    <div class="table-responsive">
+                        <table class="table table-xs mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Task Name</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Duration</th>
+                                    <th>Output</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                    <tr>
+                                        <td>{{log.task_name}}</td>
+                                        <td>{{log.category}}</td>
+                                        <td>
+                                            {% if log.task_status == "COMPLETED" %}
+                                                <span class='text-success'>
+                                            {% elif log.task_status == "RUNNING" %}
+                                                <span class='text-warning'>        
+                                            {% elif log.task_status == "ERROR" %}
+                                                <span class='text-warning'>
+                                            {% else %}
+                                                <span>
+                                            {% endif %}
+                                                    {{log.task_status}}
+                                                </span>
+
+                                        <td><span>{{log.start_time}}</span></td>
+                                        <td>
+                                            <span>
+                                            {% if log.end_time %}
+                                                {{log.end_time}}
+                                            {% endif%}
+                                            </span>
+                                        </td>
+                                        <td><span>{{log.duration}}</span></td>
+                                        <td><span>{{log.output}}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>                        
+    </div>
+</div>
+
+{% endblock %}

@@ -336,6 +336,13 @@
                         </li>
                     {% endif %}
 
+                    <li class="nav-item">
+                        <a class="nav-link link-light" href="{% url 'log:monitor' %}">
+                            <i class="bi bi-display"></i>
+                            <span class="nav-text">monitor tasks</span>
+                        </a>
+                    </li>
+
                     <hr/>
                     
                     {% if request.user.is_authenticated %}
