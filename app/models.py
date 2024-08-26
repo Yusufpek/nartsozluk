@@ -6,9 +6,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 from timescale.db.models.fields import TimescaleDateTimeField
 from timescale.db.models.managers import TimescaleManager
 
-
 from authentication.models import Author
-from .constants import TASK_STATUS
 
 
 class TimescaleModel(models.Model):
@@ -106,14 +104,30 @@ class Report(models.Model):
 
 
 class TaskLog(models.Model):
+    class Status(models.TextChoices):
+        NOT_STARTED = "NOT_STARTED"
+        RUNNING = "RUNNING"
+        COMPLETED = "COMPLETED"
+
+    class Category(models.TextChoices):
+        ENTRY = "Entry"
+        AUTH = "Auth"
+        PERIODIC = "Periodic"
+
     task_id = models.CharField(max_length=200)
     task_name = models.CharField(max_length=200)
-    task_status = models.IntegerField(choices=TASK_STATUS)
     start_time = models.DateTimeField(auto_now_add=True)
-    end_time = models.DateTimeField(auto_add=True, null=True, blank=True)
-    duration = models.DecimalField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    duration = models.DateTimeField(default=0)
+    task_status = models.CharField(
+        max_length=11,
+        choices=Status.choices,
+        default=Status.RUNNING)
+    category = models.CharField(
+        max_length=8,
+        choices=Category.choices)
 
     def save(self, *args, **kwargs):
-        diff = self.end_time.total_seconds() - self.start_time.total_seconds()
-        self.duration = diff
+        if self.end_time:
+            self.duration = self.end_time - self.start_time
         super(TaskLog, self).save(*args, **kwargs)
