@@ -294,6 +294,13 @@
                             {% for topic in topics %}
                             <li><a href="{% url 'app:topic' topic.id %}">{{topic}}</a></li>
                             {% endfor %}
+                            {% if request.user.is_staff %}
+                                <li><a href="{% url 'app:new-topic' %}" class='nav-link'>    
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span>new topic</span>
+                                    </a>
+                                </li>
+                            {% endif %}
                         </ul>
                     </li>
 

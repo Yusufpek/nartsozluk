@@ -17,8 +17,9 @@ import random
 
 from .models import Title, Entry, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
-from .forms import SettingsForm, EntryForm, TitleForm, ReportForm, NewTitleForm
+from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
+from .forms import NewTitleForm, NewTopicForm
 from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
@@ -903,6 +904,7 @@ class AIView(BaseView):
 
         ai = AI()
         if query == 0:  # new title and entries
+            self.context['title'] = None
             form = AINewTitleForm(request.POST)
             if form.is_valid():
                 title_count = form.cleaned_data['title_count']
@@ -975,3 +977,28 @@ class SpammerView(AuthMixin, BaseView):
             self.context['form'] = form
             return render(request, 'ai_page.html', self.context)
         return redirect('app:today')
+
+
+class NewTopicView(AuthMixin, BaseView):
+    def get(self, request):
+        if not request.user.is_staff:
+            return redirect('login')
+        super().get(request)
+
+        form = NewTopicForm()
+        self.context['form'] = form
+        return render(request, 'new_topic_page.html', self.context)
+
+    def post(self, request):
+        if not request.user.is_staff:
+            return redirect('login')
+
+        form = NewTopicForm(request.POST)
+        if form.is_valid():
+            text = form.cleaned_data['text']
+            topic = Topic(text=text, created_by=request.user)
+            topic.save()
+            return redirect('app:index')
+        else:
+            self.context['form'] = form
+            return render(request, 'new_topic_page.html', self.context)

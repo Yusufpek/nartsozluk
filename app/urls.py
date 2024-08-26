@@ -52,5 +52,6 @@ urlpatterns = [
          views.ReportDeleteView.as_view(), name="report-delete"),
     path('<int:query>/ai-view', views.AIView.as_view(), name='ai-bot'),
     path('spammer', views.SpammerView.as_view(), name='spammer'),
+    path('new-topic', views.NewTopicView.as_view(), name='new-topic'),
     path('not-found', views.NotFoundView.as_view(), name='not-found')
 ]

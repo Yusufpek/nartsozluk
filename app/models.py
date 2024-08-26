@@ -8,6 +8,7 @@ from timescale.db.models.managers import TimescaleManager
 
 
 from authentication.models import Author
+from .constants import TASK_STATUS
 
 
 class TimescaleModel(models.Model):
@@ -102,3 +103,17 @@ class Report(models.Model):
 
     def __str__(self):
         return self.description + '- entry: ' + str(self.entry_uid)
+
+
+class TaskLog(models.Model):
+    task_id = models.CharField(max_length=200)
+    task_name = models.CharField(max_length=200)
+    task_status = models.IntegerField(choices=TASK_STATUS)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(auto_add=True, null=True, blank=True)
+    duration = models.DecimalField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        diff = self.end_time.total_seconds() - self.start_time.total_seconds()
+        self.duration = diff
+        super(TaskLog, self).save(*args, **kwargs)
