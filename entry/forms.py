@@ -6,7 +6,7 @@ from app.utils import content_is_empty, format_entry_urls
 
 
 class EntryForm(forms.Form):
-    entry_content = forms.CharField(
+    content = forms.CharField(
         label='entry content',
         widget=CKEditor5Widget(attrs={"class": "django_ckeditor_5"}),)
 

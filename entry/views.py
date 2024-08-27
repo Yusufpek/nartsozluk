@@ -35,8 +35,8 @@ class NewEntryView(AuthMixin, BaseView):
         if form.is_valid():
             entry_content = form.cleaned_data['content']
             entry = Entry.objects.filter(
-                author=request.user,
-                title=title,
+                author=request.user.username,
+                title=title.text,
                 content__contains=entry_content).first()
             if entry:
                 message = 'you already wrote like this.'
@@ -45,8 +45,8 @@ class NewEntryView(AuthMixin, BaseView):
             else:
                 Entry(
                     content=entry_content,
-                    author=request.user,
-                    title=title).save()
+                    author=request.user.username,
+                    title=title.text).save()
                 return redirect('app:title', title_id)
         return render(request, 'new_entry_page.html', self.context)
 

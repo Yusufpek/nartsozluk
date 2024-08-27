@@ -80,6 +80,7 @@ class BaseView(View):
                 self.ENTRY_COUNT = int(request.user.random_entry_count)
 
     def get_is_fav_attr_entry(self, base_manager, user):
+        return base_manager
         if (user.is_authenticated):
             uids = base_manager.values_list('uid', flat=True)
             fav_ids = AuthorsFavorites.objects.filter(
@@ -94,6 +95,7 @@ class BaseView(View):
             return base_manager
 
     def get_vote_counts_entry(self, base_manager):
+        return base_manager
         up_votes_subquery = Vote.objects.filter(
             entry_id=OuterRef('uid'), is_up=True
             ).values('entry_id').annotate(
@@ -129,7 +131,7 @@ class BaseView(View):
         self.get_entry_count(request)
         title_entries = self.get_is_fav_attr_entry(base_manager, request.user)
         title_entries = self.get_vote_counts_entry(title_entries)
-        title_entries = title_entries.order_by('created_at')
+        # title_entries = title_entries.order_by('created_at')
         self.set_pagination(title_entries, request)
 
         self.context['show_title'] = False
@@ -145,9 +147,11 @@ class HomeView(BaseView):
 
         if 'random_entries' in cache:
             entries = cache.get('random_entries')
+            cache.delete('random_entries')
+            print("entries")
         else:
             # TODO: delete entry got error here!
-            ids = Entry.objects.all().values_list('uid', flat=True)
+            ids = Entry.objects.values_list('uid', flat=True)
             max_count = len(ids)
             if (max_count):
                 count = min(len(ids), self.ENTRY_COUNT)  # limit with pk, count
@@ -160,11 +164,14 @@ class HomeView(BaseView):
                         id = random.choice(ids)
                         ids.remove(id)
                         random_list.append(id)
-                    entries = Entry.objects.filter(pk__in=random_list)
+                    entries = Entry.objects.filter(pk__in=random_list).get()
+                    print(entries)
+                    print("----------------------------")
                 # timeout - in seconds (5 minutes)
                 cache.set('random_entries', entries, timeout=300)
             else:
                 entries = None
+        print(entries)
         if entries:
             entries = self.get_is_fav_attr_entry(entries, request.user)
             entries = entries.order_by('?')  # shuffle
@@ -182,8 +189,12 @@ class TitleView(BaseView):
             return redirect('app:not-found')
 
         self.context['title'] = title
-        title_entries = Entry.objects.filter(title=title)
+        title_entries = Entry.objects.filter(title=title.text)
+        title_entries = title_entries.order_by('created_at')
         title_entries = self.set_entries_for_title_page(title_entries, request)
+        print("------------")
+        print(title_entries)
+        print("------------")
 
         is_follow = False
         if request.user.is_authenticated:
@@ -402,13 +413,19 @@ class LDMVViews(CacheHeaderMixin, BaseView):
 class LatestView(BaseView):
     def get(self, request):
         super().get(request)
-        titles = Title.objects.annotate(
-            entries_count=Count(
-                'entry',
-                filter=Q(entry__created_at__day=timezone.now().day),
-                distinc=True))
-        titles = titles.order_by('-entries_count')[:25]
-        self.set_pagination(titles, request)
+        titles = Title.objects.all()
+        title_entry_counts = {}
+        for title in titles:
+            count = Entry.objects.filter(title=title.text).count()
+            title_entry_counts[title] = count
+
+        sorted_count = sorted(
+            title_entry_counts.items(),
+            key=lambda x: x[1],
+            reverse=True)
+        latest_titles = [title for title, count in sorted_count[:25]]
+        self.context['title_entry_counts'] = title_entry_counts
+        self.set_pagination(latest_titles, request)
         return render(request, 'latest_page.html', self.context)
 
 
@@ -519,7 +536,9 @@ class NewTitleView(AuthMixin, BaseView):
             title = Title(text=text, topic=topic, owner=request.user)
             title.save()
             entry = Entry(
-                content=entry_content, author=request.user, title=title)
+                content=entry_content,
+                author=request.user.username,
+                title=title.text)
             entry.save()
             return redirect('app:index')
         else:

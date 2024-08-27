@@ -4,7 +4,7 @@ from .models import Entry
 
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ["content", "title", "author_id"]
+    list_display = ["content", "title", "author"]
     fieldsets = [
         (
             "Informations", {"fields": [

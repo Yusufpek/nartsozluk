@@ -210,3 +210,5 @@ EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASS")
 
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+CASSANDRA_FALLBACK_ORDER_BY_PYTHON = True

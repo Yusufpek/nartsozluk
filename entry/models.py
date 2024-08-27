@@ -15,7 +15,7 @@ class Entry(DjangoCassandraModel):
         max_length=2000,
         null=True,
         blank=True)
-    author_id = columns.Integer(index=True)
+    author = columns.Text(index=True)
     title = columns.Text(required=True)
 
     @property
