@@ -1,10 +1,9 @@
-from django.db.models import Max, Count, Q, F, Value, OuterRef
+from django.db.models import Count, Q, F, Value, OuterRef
 from django.db.models import Case, When, BooleanField, Subquery, IntegerField
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.contrib import messages
 from django.utils import timezone
 from django.views import View
 from django.core.cache import cache
@@ -15,9 +14,10 @@ from celery.result import AsyncResult
 
 import random
 
-from .models import Title, Entry, Author, Vote, Topic, Report
+from entry.models import Entry
+from .models import Title, Author, Vote, Topic, Report
 from .models import AuthorsFavorites, FollowTitle, FollowAuthor
-from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
+from .forms import SettingsForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .forms import NewTitleForm, NewTopicForm
 from .constants import ORDER_CHOICES
@@ -147,25 +147,20 @@ class HomeView(BaseView):
             entries = cache.get('random_entries')
         else:
             # TODO: delete entry got error here!
-            pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
-            max_count = Entry.objects.all().count()
-            if (pk_max):
-                count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
+            ids = Entry.objects.all().values_list('uid', flat=True)
+            max_count = len(ids)
+            if (max_count):
+                count = min(len(ids), self.ENTRY_COUNT)  # limit with pk, count
                 count = min(max_count, count)  # limit with entry count
                 if count == max_count:  # get all entries
                     entries = Entry.objects.all()
                 else:
-                    random_list = random.sample(range(1, pk_max+1), count)
+                    random_list = []
+                    while len(random_list) < count:
+                        id = random.choice(ids)
+                        ids.remove(id)
+                        random_list.append(id)
                     entries = Entry.objects.filter(pk__in=random_list)
-                    remaining = count - entries.count()
-
-                    # if random list has deleted entry ids
-                    while remaining != 0:
-                        random_list = random.sample(
-                            range(1, pk_max+1), remaining)
-                        new_entries = Entry.objects.filter(pk__in=random_list)
-                        entries = entries | new_entries  # union of them
-                        remaining = count - len(entries)
                 # timeout - in seconds (5 minutes)
                 cache.set('random_entries', entries, timeout=300)
             else:
@@ -311,19 +306,6 @@ class FollowView(AuthMixin, BaseView):
             return JsonResponse({'html': html})
         else:
             return render(request, 'follow_page.html', self.context)
-
-
-class FavView(AuthMixin, BaseView):
-    def get(self, request):
-        super().get(request)
-        favs = AuthorsFavorites.objects.filter(
-            author=request.user).values_list('entry_id')
-        entries = Entry.objects.filter(uid__in=favs).annotate(
-            is_fav=Value(True, output_field=BooleanField()))
-        self.context['entries'] = entries.order_by('-created_at')
-        self.context['show_title'] = True
-
-        return render(request, 'home_page.html', self.context)
 
 
 class OrderView(BaseView):
@@ -524,56 +506,6 @@ class UnFollowUserView(View):
         return redirect('app:profile', follow_id)
 
 
-class VoteView(View):
-    def post(self, request):
-        entry_id = request.POST.get('entry_id')
-        vote_is_up = request.POST.get('is_up') == '1'
-        vote = Vote.objects.filter(entry_id=entry_id, voter=request.user)
-        vote = vote.first()
-        if vote:  # check is there a given vote
-            # it is up vote but user gave down vote before
-            if (not vote.is_up) and vote_is_up:
-                vote.is_up = True
-            # it is down vote but user gave up vote before
-            elif vote.is_up and (not vote_is_up):
-                vote.is_up = False
-        else:   # create vote
-            vote = Vote(
-                entry_id=entry_id, voter=request.user, is_up=vote_is_up)
-        vote.save()
-
-        # get vote counts again for render
-        up_votes_count = Vote.objects.filter(
-            entry_id=entry_id, is_up=True).count()
-        down_votes_count = Vote.objects.filter(
-            entry_id=entry_id, is_up=False).count()
-
-        return JsonResponse({
-            'success': True,
-            'up_votes_count': up_votes_count,
-            'down_votes_count': down_votes_count,
-        })
-
-
-class FavEntryView(View):
-    def post(self, request):
-        entry_id = request.POST.get('entry_id')
-        user = request.user
-        try:
-            favorite = AuthorsFavorites.objects.filter(
-                entry_id=entry_id, author=user).first()
-            if favorite:  # if it is added to favorite
-                favorite.delete()  # delete it
-                is_favorite = False
-            else:  # if it is not favorite create favorite object
-                AuthorsFavorites(entry_id=entry_id, author=user).save()
-                is_favorite = True
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-
-        return JsonResponse({'success': True, 'is_favorite': is_favorite})
-
-
 class NewTitleView(AuthMixin, BaseView):
     form = TitleForm()
 
@@ -613,119 +545,6 @@ class TopicView(BaseView):
         self.context['topic'] = topic
         self.context['titles'] = titles
         return render(request, 'topic_title_page.html', self.context)
-
-
-class NewEntryView(AuthMixin, BaseView):
-    def get(self, request, title_id):
-        super().get(request)
-
-        title = Title.objects.filter(pk=title_id).first()
-        if not title:
-            return redirect('app:index')
-
-        form = EntryForm()
-        self.context['title'] = title
-        self.context['form'] = form
-        return render(request, 'new_entry_page.html', self.context)
-
-    def post(self, request, title_id):
-        title = Title.objects.filter(pk=title_id).first()  # check title
-        if not title:
-            return redirect('app:index')
-
-        self.context['title'] = title
-
-        form = EntryForm(request.POST)
-        self.context['form'] = form
-
-        if form.is_valid():
-            entry_content = form.cleaned_data['content']
-            entry = Entry.objects.filter(
-                author=request.user,
-                title=title,
-                content__contains=entry_content).first()
-            if entry:
-                message = 'you already wrote like this.'
-                messages.warning(request, message)
-                return render(request, 'new_entry_page.html', self.context)
-            else:
-                Entry(
-                    content=entry_content,
-                    author=request.user,
-                    title=title).save()
-                return redirect('app:title', title_id)
-        return render(request, 'new_entry_page.html', self.context)
-
-
-class DeleteEntryView(AuthMixin, BaseView):
-    def post(self, request):
-        super().get(request)
-
-        entry_id = request.POST.get('entry_id')
-        if request.user.is_staff:
-            entry = Entry.objects.filter(uid=entry_id).first()
-        else:
-            entry = Entry.objects.filter(
-                uid=entry_id, author=request.user).first()
-
-        if entry:
-            entry.delete()
-            return JsonResponse({'success': True})
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': 'Entry does not exist, or the author is not valid'})
-
-
-class EntryEditView(AuthMixin, BaseView):
-    def get(self, request, entry_id):
-        super().get(request)
-
-        entry = Entry.objects.filter(uid=entry_id).first()
-        if not entry:
-            return redirect('app:not-found')
-
-        if request.user != entry.author:
-            return redirect('authentication:login')
-
-        form = EntryForm(initial={'content': entry.content})
-        self.context['form'] = form
-        self.context['title'] = entry.title
-        return render(request, 'new_entry_page.html', self.context)
-
-    def post(self, request, entry_id):
-
-        form = EntryForm(request.POST)
-        if form.is_valid():
-            entry_content = form.cleaned_data['content']
-            entry = Entry.objects.filter(
-                uid=entry_id, author=request.user).first()
-            if not entry:
-                return redirect('app:not-found')
-            else:
-                entry.content = entry_content
-                entry.save()
-                return redirect('app:title', entry.title.id)
-        self.context['form'] = form
-        self.context['title'] = entry.title
-        return render(request, 'new_entry_page.html', self.context)
-
-
-class EntryView(BaseView):
-    context = {}
-
-    def get(self, request, entry_id):
-        super().get(request)
-
-        entry = Entry.objects.filter(uid=entry_id)
-        if not entry:
-            return redirect('app:not-found')
-
-        entry = self.get_is_fav_attr_entry(entry, request.user)
-        entry = self.get_vote_counts_entry(entry)
-        self.context["entries"] = [entry.first()]
-        self.context['show_title'] = True
-        return render(request, 'home_page.html', self.context)
 
 
 class NotFoundView(View):

@@ -57,11 +57,11 @@ def create_ai_title_task(title_count, entry_count):
                     print('created title id:{id}, text: {text}'.format(
                         id=title.id, text=title.text))
                     create_entry(
-                        response['entry'], user, title)
+                        response['entry'], user.id, title)
                     entry_res = ai.get_new_entries_to_title(
                         title, entry_count-1)
                     for res in entry_res:
-                        create_entry(res, user, title)
+                        create_entry(res, user.id, title)
                     title_count -= 1
                 else:
                     print("-------------------------------")

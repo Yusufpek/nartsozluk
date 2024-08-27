@@ -57,7 +57,7 @@
                         <div class="dropdown-menu">
                             {% if request.user == entry.author %}
                                 <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.uid }}"style="color: initial;">
-                                    <a href="{% url 'app:edit-entry' entry.uid%}" class='link-light'>
+                                    <a href="{% url 'entry:edit-entry' entry.uid%}" class='link-light'>
                                         <i class="bi bi-pencil"> edit entry</i>
                                     </a>
                                 </button>

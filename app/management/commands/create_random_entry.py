@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
-from app.models import Entry, Title, Topic, Author
+from app.models import Title, Topic, Author
+from entry.models import Entry
 
 import os
 import random
@@ -36,7 +37,7 @@ class Command(BaseCommand):
                     entry_content = entry_content.replace('\n', ' ')
                 entry = Entry(
                     content=entry_content,
-                    author=user,
+                    author_id=user.id,
                     title=title)
                 entry.save()
                 self.stdout.write(

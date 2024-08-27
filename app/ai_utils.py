@@ -109,9 +109,9 @@ class AI:
         return data[:count]
 
 
-def create_entry(content, user, title):
+def create_entry(content, user_id, title):
     content = format_entry_urls(content)
-    entry = Entry(content=content, author_id=user.id, title=title)
+    entry = Entry(content=content, author_id=user_id, title=title)
     entry.save()
     print('created entry id:{id}, text: {text}'.format(
         id=entry.id, text=entry.content))

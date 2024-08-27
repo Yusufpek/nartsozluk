@@ -37,30 +37,6 @@ class TitleForm(forms.Form):
         return self.cleaned_data
 
 
-class EntryForm(forms.ModelForm):
-    class Meta:
-        model = Entry
-        fields = ("content",)
-        widgets = {
-            "content": CKEditor5Widget(attrs={"class": "django_ckeditor_5"}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super(EntryForm, self).__init__(*args, **kwargs)
-        self.fields["content"].required = False
-        self.fields["content"].label = "content"
-
-    def clean(self):  # avoid empty entries
-        content = self.cleaned_data.get('content')
-        raw_content = content
-        if content:
-            if content_is_empty(content):
-                raise ValidationError("entry content can not be empty")
-            else:
-                self.cleaned_data['content'] = format_entry_urls(raw_content)
-        return self.cleaned_data
-
-
 class SettingsForm(forms.ModelForm):
     class Meta:
         model = Author
