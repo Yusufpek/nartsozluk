@@ -24,6 +24,7 @@ from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
 from .tasks import create_ai_title_task, create_random_entries_task
+from .tasks import create_new_entries_to_title_task
 
 
 # user can choose random entry count max count is 50
@@ -921,12 +922,7 @@ class AIView(BaseView):
             if form.is_valid():
                 form_title = form.cleaned_data['title_id']
                 entry_count = form.cleaned_data['entry_count']
-                title = Title.objects.filter(pk=form_title).first()
-                if title:
-                    entry_res = ai.get_new_entries_to_title(
-                            title, entry_count)
-                    for res in entry_res:
-                        create_entry(res, request.user, title)
+                create_new_entries_to_title_task(form_title, entry_count)
             else:
                 self.context['form'] = form
                 return render(request, 'ai_page.html', self.context)
