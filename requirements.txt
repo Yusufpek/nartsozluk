@@ -16,6 +16,7 @@ crispy-bootstrap4==2024.1
 decouple==0.0.7
 Django==4.2.14
 django-bootstrap-v5==1.0.11
+django-cassandra-engine==1.9.0
 django-celery-results==2.5.1
 django-ckeditor-5==0.2.13
 django-crispy-forms==2.3
@@ -25,6 +26,7 @@ django-timescaledb==0.2.13
 elastic-transport==8.13.1
 elasticsearch==7.9.0
 elasticsearch-dsl==7.4.1
+geomet==0.2.1.post1
 google-ai-generativelanguage==0.6.6
 google-api-core==2.19.1
 google-api-python-client==2.140.0
@@ -48,9 +50,11 @@ pydantic==2.8.2
 pydantic_core==2.20.1
 pyparsing==3.1.2
 python-dateutil==2.9.0.post0
+PyYAML==6.0.2
 redis==5.0.8
 requests==2.32.3
 rsa==4.9
+scylla-driver==3.26.9
 six==1.16.0
 soupsieve==2.5
 sqlparse==0.5.1

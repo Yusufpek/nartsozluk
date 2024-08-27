@@ -13,6 +13,10 @@ services:
       - POSTGRES_PASSWORD=postgres
     restart: on-failure
 
+  cassandra:
+    hostname: cassandra
+    image: cassandra:latest
+
   elasticsearch:
     image: elasticsearch:7.8.1
     platform: linux/amd64
@@ -32,6 +36,8 @@ services:
     command: >
       bash -c "
         python manage.py makemigrations &&
+        python manage.py sync_cassandra &&
+        python manage.py migrate --database=entry_log_db &&
         python manage.py migrate --noinput &&
         python manage.py runserver 0.0.0.0:8000
       "
@@ -53,6 +59,7 @@ services:
       - db
       - elasticsearch
       - redis
+      - cassandra
 
   rabbitmq:
     restart: always

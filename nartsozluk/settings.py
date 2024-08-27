@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'django_elasticsearch_dsl',
     'django_celery_results',
+    'django_cassandra_engine',
     'celery',
+    'entry_log',
     'authentication',
     'log',
     'app'
@@ -83,6 +85,7 @@ WSGI_APPLICATION = 'nartsozluk.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+DATABASE_ROUTERS = ['db_routers.entry_log_router.EntryLogRouter']
 
 DATABASES = {
     'default': {
@@ -92,6 +95,19 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': 'db',
         'PORT': 5432,
+    },
+    'entry_log_db': {
+        'ENGINE': 'django_cassandra_engine',
+        'NAME': 'cassandra_db',
+        'TEST_NAME': 'test__cassandra_db',
+        'HOST': 'cassandra',
+        'PORT': 9042,
+        'OPTIONS': {
+            'replication': {
+                'strategy_class': 'SimpleStrategy',
+                'replication_factor': 3
+            }
+        }
     }
 }
 
