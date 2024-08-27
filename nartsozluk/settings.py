@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'celery',
     'authentication',
     'log',
+    'entry',
     'app'
 ]
 
@@ -83,6 +84,7 @@ WSGI_APPLICATION = 'nartsozluk.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+DATABASE_ROUTERS = ['db_routers.db_router.EntryRouter']
 
 DATABASES = {
     'default': {
@@ -92,6 +94,18 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': 'db',
         'PORT': 5432,
+    },
+    'entry_db': {
+        'ENGINE': 'django_cassandra_engine',
+        'NAME': 'db',
+        'TEST_NAME': 'test_db',
+        'HOST': '127.0.0.1',
+        'OPTIONS': {
+            'replication': {
+                'strategy_class': 'SimpleStrategy',
+                'replication_factor': 3
+                }
+        }
     }
 }
 

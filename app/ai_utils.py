@@ -1,7 +1,8 @@
 import google.generativeai as genai
 import os
 
-from .models import Entry, Title
+from .models import Title
+from entry.models import Entry
 from .utils import format_entry_urls
 
 
@@ -110,7 +111,7 @@ class AI:
 
 def create_entry(content, user, title):
     content = format_entry_urls(content)
-    entry = Entry(content=content, author=user, title=title)
+    entry = Entry(content=content, author_id=user.id, title=title)
     entry.save()
     print('created entry id:{id}, text: {text}'.format(
         id=entry.id, text=entry.content))
