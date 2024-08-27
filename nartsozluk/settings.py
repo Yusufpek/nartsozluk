@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_elasticsearch_dsl',
     'django_celery_results',
     'celery',
+    'django_cassandra_engine',
     'authentication',
     'log',
     'entry',
@@ -84,7 +85,7 @@ WSGI_APPLICATION = 'nartsozluk.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-DATABASE_ROUTERS = ['db_routers.db_router.EntryRouter']
+DATABASE_ROUTERS = ['db_routers.entry_router.EntryRouter']
 
 DATABASES = {
     'default': {
@@ -97,9 +98,10 @@ DATABASES = {
     },
     'entry_db': {
         'ENGINE': 'django_cassandra_engine',
-        'NAME': 'db',
-        'TEST_NAME': 'test_db',
-        'HOST': '127.0.0.1',
+        'NAME': 'cassandra_db',
+        'TEST_NAME': 'test__cassandra_db',
+        'HOST': 'cassandra',
+        'PORT': 9042,
         'OPTIONS': {
             'replication': {
                 'strategy_class': 'SimpleStrategy',
