@@ -25,6 +25,7 @@ class Command(BaseCommand):
                         created_at=datetime.now()).save()
                     self.stdout.write(
                         self.style.SUCCESS('Successfully created entry_log'))
-                self.stdout.write(self.style.ERROR('Entry does not exist'))
+                else:
+                    self.stdout.write(self.style.ERROR('Entry does not exist'))
             except Exception as e:
                 raise CommandError('Error creating random error log ' + str(e))
