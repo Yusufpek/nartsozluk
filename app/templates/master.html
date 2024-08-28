@@ -321,6 +321,9 @@
                     {% endif %}
 
                     {% if request.user.username == 'bot' %}
+
+                    <hr/>
+
                         <li class="nav-item">
                             <a class="nav-link link-light" href="{% url 'app:ai-bot' 1%}">
                                 <i class="bi bi-flag"></i>
@@ -336,12 +339,27 @@
                         </li>
                     {% endif %}
 
-                    <li class="nav-item">
-                        <a class="nav-link link-light" href="{% url 'log:monitor' %}">
-                            <i class="bi bi-display"></i>
-                            <span class="nav-text">monitor tasks</span>
-                        </a>
-                    </li>
+                    {% if request.user.is_staff or request.user.username == 'bot' %}
+                        <li class="nav-item">
+                            <a class="nav-link link-light" href="{% url 'log:monitor' %}">
+                                <i class="bi bi-display"></i>
+                                <span class="nav-text">monitor tasks</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link link-light" href="{% url 'entry_log:logs' %}">
+                                <i class="bi bi-display"></i>
+                                <span class="nav-text">monitor entry logs</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link link-light" href="{% url 'entry_log:summary' %}">
+                                <i class="bi bi-display"></i>
+                                <span class="nav-text">monitor summary</span>
+                            </a>
+                        </li>
+                {% endif %}
 
                     <hr/>
                     

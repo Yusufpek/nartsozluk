@@ -1,3 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
-# Create your views here.
+from app.views import AuthMixin, BaseView
+from .models import EntryLog
+
+
+class EntryLogView(AuthMixin, BaseView):
+    def get(self, request):
+        if not (request.user.is_staff or request.user.username == 'bot'):
+            return redirect('authentication:login')
+        logs = EntryLog.objects.all().order_by('-created_at')
+        self.context['logs'] = logs
+        return render(request, 'entry_log_page.html', self.context)
