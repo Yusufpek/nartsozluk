@@ -120,8 +120,8 @@ class BaseView(View):
             fav_count=Coalesce(
                 Subquery(fav_subquery, output_field=IntegerField()), 0))
 
-    def set_pagination(self, base_manager, request):
-        paginator = Paginator(base_manager, self.ENTRY_COUNT)
+    def set_pagination(self, base_manager, request, count=ENTRY_COUNT):
+        paginator = Paginator(base_manager, count)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj

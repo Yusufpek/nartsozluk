@@ -10,6 +10,7 @@ class EntryLogView(AuthMixin, BaseView):
             return redirect('authentication:login')
         logs = EntryLog.objects.all().order_by('-created_at')
         self.context['logs'] = logs
+        self.set_pagination(logs, request, count=50)
         return render(request, 'entry_log_page.html', self.context)
 
 
