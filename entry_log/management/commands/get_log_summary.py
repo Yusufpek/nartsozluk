@@ -22,7 +22,10 @@ class Command(BaseCommand):
                 created_at__gt=previous).values_list('entry_uid', flat=True)
             entry_ids = set(entry_ids)
             for id in entry_ids:
-                records = EntryLog.objects.filter(entry_uid=id)
+                time_filtered = EntryLog.objects.filter(
+                    created_at__lt=now,
+                    created_at__gt=previous)
+                records = time_filtered.filter(entry_uid=id)
                 val = 0
                 for rec in records:
                     val += rec.value
