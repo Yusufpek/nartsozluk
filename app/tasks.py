@@ -76,6 +76,7 @@ def create_ai_title_task(title_count, entry_count):
         log.complete_task_error("Proccess done!")
         return str(e)
 
+
 @shared_task
 def create_new_entries_to_title_task(form_title, entry_count):
     log = Log(
