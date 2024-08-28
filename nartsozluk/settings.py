@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from celery.schedules import crontab
 from pathlib import Path
 import os
 
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'django_elasticsearch_dsl',
     'django_celery_results',
     'django_cassandra_engine',
+    'django_celery_beat',
     'celery',
     'entry_log',
     'authentication',
@@ -212,3 +214,10 @@ CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 CASSANDRA_FALLBACK_ORDER_BY_PYTHON = True
+
+CELERY_BEAT_SCHEDULE = {
+    "get_log_summary_task": {
+        "task": "entry_log.tasks.get_log_summary_task",
+        "schedule": crontab(hour="1"),
+    },
+}

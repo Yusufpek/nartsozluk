@@ -37,7 +37,6 @@ services:
       bash -c "
         python manage.py makemigrations &&
         python manage.py sync_cassandra &&
-        python manage.py migrate --database=entry_log_db &&
         python manage.py migrate --noinput &&
         python manage.py runserver 0.0.0.0:8000
       "
@@ -90,3 +89,18 @@ services:
       - MAIL_PASS=${MAIL_PASS}
     depends_on:
       - rabbitmq
+  celery-beat:
+    working_dir: /code/
+    build: .
+    command: celery -A nartsozluk beat -l info
+    volumes:
+      - .:/code/:/usr/src/app/
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=${SECRET_KEY}
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - rabbitmq
+      - celery
