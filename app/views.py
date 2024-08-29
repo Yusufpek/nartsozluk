@@ -1,4 +1,4 @@
-from django.db.models import Max, Count, Q, F, Value, OuterRef
+from django.db.models import Count, Q, F, Value, OuterRef
 from django.db.models import Case, When, BooleanField, Subquery, IntegerField
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -146,27 +146,20 @@ class HomeView(BaseView):
 
         if 'random_entries' in cache:
             entries = cache.get('random_entries')
+            if entries.count() == 0:
+                cache.delete('random_entries')
         else:
-            # TODO: delete entry got error here!
-            pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
-            max_count = Entry.objects.all().count()
-            if (pk_max):
-                count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
-                count = min(max_count, count)  # limit with entry count
+            entry_ids = Entry.objects.all().values_list('uid', flat=True)
+            max_count = len(entry_ids)
+            if (entry_ids):
+                count = min(max_count, self.ENTRY_COUNT)  # limit
                 if count == max_count:  # get all entries
                     entries = Entry.objects.all()
                 else:
-                    random_list = random.sample(range(1, pk_max+1), count)
-                    entries = Entry.objects.filter(pk__in=random_list)
-                    remaining = count - entries.count()
-
-                    # if random list has deleted entry ids
-                    while remaining != 0:
-                        random_list = random.sample(
-                            range(1, pk_max+1), remaining)
-                        new_entries = Entry.objects.filter(pk__in=random_list)
-                        entries = entries | new_entries  # union of them
-                        remaining = count - len(entries)
+                    random_set = set()
+                    while count != len(random_set):
+                        random_set.add(random.choice(entry_ids))
+                    entries = Entry.objects.filter(uid__in=list(random_set))
                 # timeout - in seconds (5 minutes)
                 cache.set('random_entries', entries, timeout=300)
             else:
