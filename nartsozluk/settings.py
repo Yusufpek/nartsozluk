@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from celery.schedules import crontab
 from pathlib import Path
 import os
 
@@ -44,7 +45,10 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'django_elasticsearch_dsl',
     'django_celery_results',
+    'django_cassandra_engine',
+    'django_celery_beat',
     'celery',
+    'entry_log',
     'authentication',
     'log',
     'app'
@@ -83,6 +87,7 @@ WSGI_APPLICATION = 'nartsozluk.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+DATABASE_ROUTERS = ['db_routers.entry_log_router.EntryLogRouter']
 
 DATABASES = {
     'default': {
@@ -92,6 +97,19 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': 'db',
         'PORT': 5432,
+    },
+    'entry_log_db': {
+        'ENGINE': 'django_cassandra_engine',
+        'NAME': 'cassandra_db',
+        'TEST_NAME': 'test__cassandra_db',
+        'HOST': 'cassandra',
+        'PORT': 9042,
+        'OPTIONS': {
+            'replication': {
+                'strategy_class': 'SimpleStrategy',
+                'replication_factor': 3
+            }
+        }
     }
 }
 
@@ -194,3 +212,12 @@ EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASS")
 
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+CASSANDRA_FALLBACK_ORDER_BY_PYTHON = True
+
+CELERY_BEAT_SCHEDULE = {
+    "get_log_summary_task": {
+        "task": "entry_log.tasks.get_log_summary_task",
+        "schedule": crontab(hour="1"),
+    },
+}

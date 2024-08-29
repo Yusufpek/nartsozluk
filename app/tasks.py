@@ -75,3 +75,33 @@ def create_ai_title_task(title_count, entry_count):
     except Exception as e:
         log.complete_task_error("Proccess done!")
         return str(e)
+
+
+@shared_task
+def create_new_entries_to_title_task(form_title, entry_count):
+    log = Log(
+            task_name="Create Title with AI",
+            category=Log.Category.ENTRY,
+        )
+    log.save()
+
+    user = Author.objects.filter(username='bot').first()
+    if not user:
+        output = "no user found as a bot"
+        log.complete_task_error(output)
+        return output
+    try:
+        ai = AI()
+        title = Title.objects.filter(pk=form_title).first()
+        if title:
+            entry_res = ai.get_new_entries_to_title(title, entry_count)
+            for res in entry_res:
+                create_entry(res, user, title)
+            output = str(entry_count) + " Entries added to title!"
+            log.complete_task(output)
+            return output
+        log.complete_task_error("Title not found!")
+        return "Title not found"
+    except Exception as e:
+        log.complete_task_error(str(e))
+        return str(e)

@@ -1,0 +1,40 @@
+{% extends "master.html" %}
+{% load static %} 
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="active-member">
+                    <div class="table-responsive">
+                        <table class="table table-xs mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Entry ID</th>
+                                    <th>Total Value</th>
+                                    <th>Record Count</th>
+                                    <th>Interval</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                    <tr>
+                                        <td><span>{{log.entry_uid}}</span></td>
+                                        <td><span>{{log.total_value}}</span></td>
+                                        <td><span>{{log.record_count}}</span></td>
+                                        <td><span>{{log.interval}}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>                        
+    </div>
+</div>
+
+{% endblock %}

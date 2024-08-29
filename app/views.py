@@ -1,4 +1,4 @@
-from django.db.models import Max, Count, Q, F, Value, OuterRef
+from django.db.models import Count, Q, F, Value, OuterRef
 from django.db.models import Case, When, BooleanField, Subquery, IntegerField
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -24,6 +24,7 @@ from .constants import ORDER_CHOICES
 from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
 from .tasks import create_ai_title_task, create_random_entries_task
+from .tasks import create_new_entries_to_title_task
 
 
 # user can choose random entry count max count is 50
@@ -119,8 +120,8 @@ class BaseView(View):
             fav_count=Coalesce(
                 Subquery(fav_subquery, output_field=IntegerField()), 0))
 
-    def set_pagination(self, base_manager, request):
-        paginator = Paginator(base_manager, self.ENTRY_COUNT)
+    def set_pagination(self, base_manager, request, count=ENTRY_COUNT):
+        paginator = Paginator(base_manager, count)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         self.context['page_obj'] = page_obj
@@ -145,27 +146,20 @@ class HomeView(BaseView):
 
         if 'random_entries' in cache:
             entries = cache.get('random_entries')
+            if entries.count() == 0:
+                cache.delete('random_entries')
         else:
-            # TODO: delete entry got error here!
-            pk_max = Entry.objects.all().aggregate(pk_max=Max("pk"))['pk_max']
-            max_count = Entry.objects.all().count()
-            if (pk_max):
-                count = min(pk_max, self.ENTRY_COUNT)  # limit with pk, count
-                count = min(max_count, count)  # limit with entry count
+            entry_ids = Entry.objects.all().values_list('uid', flat=True)
+            max_count = len(entry_ids)
+            if (entry_ids):
+                count = min(max_count, self.ENTRY_COUNT)  # limit
                 if count == max_count:  # get all entries
                     entries = Entry.objects.all()
                 else:
-                    random_list = random.sample(range(1, pk_max+1), count)
-                    entries = Entry.objects.filter(pk__in=random_list)
-                    remaining = count - entries.count()
-
-                    # if random list has deleted entry ids
-                    while remaining != 0:
-                        random_list = random.sample(
-                            range(1, pk_max+1), remaining)
-                        new_entries = Entry.objects.filter(pk__in=random_list)
-                        entries = entries | new_entries  # union of them
-                        remaining = count - len(entries)
+                    random_set = set()
+                    while count != len(random_set):
+                        random_set.add(random.choice(entry_ids))
+                    entries = Entry.objects.filter(uid__in=list(random_set))
                 # timeout - in seconds (5 minutes)
                 cache.set('random_entries', entries, timeout=300)
             else:
@@ -921,12 +915,7 @@ class AIView(BaseView):
             if form.is_valid():
                 form_title = form.cleaned_data['title_id']
                 entry_count = form.cleaned_data['entry_count']
-                title = Title.objects.filter(pk=form_title).first()
-                if title:
-                    entry_res = ai.get_new_entries_to_title(
-                            title, entry_count)
-                    for res in entry_res:
-                        create_entry(res, request.user, title)
+                create_new_entries_to_title_task(form_title, entry_count)
             else:
                 self.context['form'] = form
                 return render(request, 'ai_page.html', self.context)
