@@ -21,10 +21,10 @@ from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .forms import NewTitleForm, NewTopicForm
 from .constants import ORDER_CHOICES
-from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
 from .tasks import create_ai_title_task, create_random_entries_task
 from .tasks import create_new_entries_to_title_task
+from .tasks import create_entries_like_an_entry_task
 
 
 # user can choose random entry count max count is 50
@@ -896,7 +896,6 @@ class AIView(BaseView):
         if request.user.username != 'bot':
             return redirect('authentication:login')
 
-        ai = AI()
         if query == 0:  # new title and entries
             self.context['title'] = None
             form = AINewTitleForm(request.POST)
@@ -926,13 +925,10 @@ class AIView(BaseView):
                 entry_id = form.cleaned_data['entry_id']
                 form_title = form.cleaned_data['title_id']
                 entry_count = form.cleaned_data['entry_count']
-                entry = Entry.objects.filter(uid=entry_id).first()
-                title = Title.objects.filter(pk=form_title).first()
-                if title and entry:
-                    entry_res = ai.get_entries_like_an_entry(
-                        title, entry, entry_count)
-                    for res in entry_res:
-                        create_entry(res, request.user, title)
+                create_entries_like_an_entry_task(
+                    entry_id=entry_id,
+                    title_id=form_title,
+                    count=entry_count)
             else:
                 return render(request, 'ai_page.html', self.context)
         return redirect('dictionary:today')
