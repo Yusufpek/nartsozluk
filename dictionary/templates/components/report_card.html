@@ -8,7 +8,7 @@
             {{report.entry.content|safe}}
             <div class="d-flex justify-content-between align-items-center">
                 {% if report.entry.author %}
-                    <a href="{% url 'app:profile' report.entry.author.id %}" class="nav-link link-dark ml-0 pl-0"><p>{{report.entry.author}}</p></a>
+                    <a href="{% url 'dictionary:profile' report.entry.author.id %}" class="nav-link link-dark ml-0 pl-0"><p>{{report.entry.author}}</p></a>
                 {% else %}
                     deleted user
                 {% endif %}

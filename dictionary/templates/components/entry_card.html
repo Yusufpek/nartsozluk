@@ -4,7 +4,7 @@
     <div class="card-body">
         {% if show_title %}
         <h4 class='card-title'>
-            <a href="{% url 'app:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
+            <a href="{% url 'dictionary:title' entry.title.id %}" class='link-secondary'>{{entry.title}}</a>
         </h4>
         {% endif %}
         {{entry.content|safe}}
@@ -12,7 +12,7 @@
         <div class="d-sm-flex justify-content-between mb-2">
             <h6 class="mb-sm-0">
                 {% if entry.author != None %}
-                <a href= "{% url 'app:profile' entry.author.id %}" class='link-secondary'>
+                <a href= "{% url 'dictionary:profile' entry.author.id %}" class='link-secondary'>
                     <div>
                         <img src="{{entry.author.profile_image.url}}" class='rounded-circle-xsmall mx-2'/><span>{{entry.author}}</span>
                     </div>
@@ -57,7 +57,7 @@
                         <div class="dropdown-menu">
                             {% if request.user == entry.author %}
                                 <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 user-button" data-entry-id="{{ entry.uid }}"style="color: initial;">
-                                    <a href="{% url 'app:edit-entry' entry.uid%}" class='link-light'>
+                                    <a href="{% url 'dictionary:edit-entry' entry.uid%}" class='link-light'>
                                         <i class="bi bi-pencil"> edit entry</i>
                                     </a>
                                 </button>
@@ -72,7 +72,7 @@
                             </button>
                             {% if entry.author != request.user %}
                                 <button class="btn btn-transparent text-dark font-weight-bold p-0 ml-2 report-button" data-entry-id="{{ entry.uid }}" style="color: initial;">
-                                    <a href="{% url 'app:report' entry.uid %}" class='link-light'>
+                                    <a href="{% url 'dictionary:report' entry.uid %}" class='link-light'>
                                         <i class="bi bi-clipboard"> report entry</i>
                                     </a>
                                 </button>

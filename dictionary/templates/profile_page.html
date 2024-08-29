@@ -12,7 +12,7 @@
         {% if follow != -1 %}
             {% if follow == 0 %}
                 <button type="button" class="btn btn-warning mx-5">
-                    <a class="nav-link link-dark p-0" href="{% url 'app:follow-user' author.id %}">
+                    <a class="nav-link link-dark p-0" href="{% url 'dictionary:follow-user' author.id %}">
                         <i class="bi bi-plus-square"></i> follow
                     </a>
                 </button>
@@ -25,7 +25,7 @@
             {% elif follow == 2 %}
                 <div> 
                     <button type="button" class="btn btn-warning mb-2">
-                        <a class="nav-link link-dark p-0" href="{% url 'app:unfollow-user' author.id %}">
+                        <a class="nav-link link-dark p-0" href="{% url 'dictionary:unfollow-user' author.id %}">
                             <i class="bi bi-plus-square"></i> unfollow
                         </a>
                     </button>
@@ -40,7 +40,7 @@
     <div class="container-fluid mt-3">
         <div class="row justify-content-center align-items-center">
             <div class="col">
-                <a href="{% url 'app:profile' author.id 1 %}" id='entry' class='nav-link profile-filter'>
+                <a href="{% url 'dictionary:profile' author.id 1 %}" id='entry' class='nav-link profile-filter'>
                 <div class="card gradient-1">
                     <div class="card-body">
                         <h3 class="card-title text-white">Written Entry</h3>
@@ -54,7 +54,7 @@
             </div>
 
             <div class="col">
-                <a href="{% url 'app:profile' author.id 2 %}" id='title' class='nav-link profile-filter'>
+                <a href="{% url 'dictionary:profile' author.id 2 %}" id='title' class='nav-link profile-filter'>
                 <div class="card gradient-2">
                     <div class="card-body">
                         <h3 class="card-title text-white">Created Title</h3>
@@ -68,7 +68,7 @@
             </div>
 
             <div class="col">
-                <a href="{% url 'app:profile' author.id 3 %}" id='follower' class='nav-link profile-filter'>
+                <a href="{% url 'dictionary:profile' author.id 3 %}" id='follower' class='nav-link profile-filter'>
                 <div class="card gradient-3">
                     <div class="card-body">
                         <h3 class="card-title text-white">Followers</h3>

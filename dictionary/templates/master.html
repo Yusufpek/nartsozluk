@@ -64,7 +64,7 @@
         <div class="nav-header">
             <div class='mb-5'>
                 <div class="brand-logo">
-                    <a href="{% url 'app:index' %}">
+                    <a href="{% url 'dictionary:index' %}">
                         <b class="logo-abbr"><img src="{% static 'images/logo.png' %}" alt=""></b>
                         <span class="logo-compact mb-5"><img src="{% static 'images/logo.png' %}" alt=""></span>
                         <span class="brand-title">
@@ -94,7 +94,7 @@
                 */
                 new Autocomplete('#autocomplete', {
                     search: input => {
-                        const url = "{% url 'app:search' %}?query=" + encodeURIComponent(input);
+                        const url = "{% url 'dictionary:search' %}?query=" + encodeURIComponent(input);
                         return new Promise(res => { // async object
                             fetch(url) // get request
                             .then(response => response.json()) // reach json response data async
@@ -102,9 +102,9 @@
                         })
                     },
                     renderResult: (result, props) =>{
-                        const topicUrl = "{% url 'app:topic' 0 %}".replace('0', result.id);
-                        const userUrl = "{% url 'app:profile' 0 %}".replace('0', result.id);
-                        const titleUrl = "{% url 'app:title' 0 %}".replace('0', result.id);
+                        const topicUrl = "{% url 'dictionary:topic' 0 %}".replace('0', result.id);
+                        const userUrl = "{% url 'dictionary:profile' 0 %}".replace('0', result.id);
+                        const titleUrl = "{% url 'dictionary:title' 0 %}".replace('0', result.id);
                         var url = titleUrl;
                         var text = result.text;
                         if(result.category == 0){
@@ -158,7 +158,7 @@
                 <div class="header-right">
                     <ul class="clearfix">
                         <li class="icons dropdown">
-                            <a href="{% url 'app:new-title' %}">
+                            <a href="{% url 'dictionary:new-title' %}">
                             <i class="bi bi-plus-lg"></i>
                             </a>
                         </li>
@@ -177,7 +177,7 @@
                                     <ul>
                                         {% for last_seen in last_seen_titles%}
                                         <li class="notification-unread">
-                                            <a href="{% url 'app:title' last_seen.title.id%}">
+                                            <a href="{% url 'dictionary:title' last_seen.title.id%}">
                                                 <div class="notification-content">
                                                     <div class="notification-heading"><h6>{{last_seen.title}}</h6></div>
                                                     <div class="notification-timestamp">{{last_seen.last_seen}}</div>
@@ -205,7 +205,7 @@
                                     <ul>
                                         {% for follow in last_follows %}
                                             <li>
-                                                <a href="{% url 'app:profile' follow.user.id %}" class='nav-link link-dark'>
+                                                <a href="{% url 'dictionary:profile' follow.user.id %}" class='nav-link link-dark'>
                                                     <span class="mr-3 avatar-icon bg-success-lighten-2">
                                                         <img src="{{follow.user.profile_image.url}}" class='rounded-circle-xsmall'/>
                                                     </span>
@@ -233,13 +233,13 @@
                                             <p>hello, {{request.user}}</p>
                                         </li>
                                         <li>
-                                            <a a class="nav-link link-dark" href="{% url 'app:profile' request.user.id %}">
+                                            <a a class="nav-link link-dark" href="{% url 'dictionary:profile' request.user.id %}">
                                                 <i class="icon-user"></i> <span>Profile</span>
                                             </a>
                                         </li>
                                         
                                         <li>
-                                            <a a class="nav-link link-dark" href="{% url 'app:settings' %}">
+                                            <a a class="nav-link link-dark" href="{% url 'dictionary:settings' %}">
                                                 <i class="bi bi-gear"></i> <span>Settings</span>
                                             </a>
                                         </li>
@@ -272,13 +272,13 @@
             <div class="nk-nav-scroll">
                 <ul class="metismenu" id="menu">
                     <li class="">
-                        <a class="nav-link link-light" href="{% url 'app:latest' %}">
+                        <a class="nav-link link-light" href="{% url 'dictionary:latest' %}">
                             <i class="bi bi-archive"></i>
                             <span class="nav-text">latest</span>
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link link-light" href="{% url 'app:today' %}">
+                        <a class="nav-link link-light" href="{% url 'dictionary:today' %}">
                             <i class="bi bi-calendar-range"></i>
                             <span class="nav-text">today</span>
                         </a>
@@ -292,10 +292,10 @@
 
                         <ul aria-expanded="false">
                             {% for topic in topics %}
-                            <li><a href="{% url 'app:topic' topic.id %}">{{topic}}</a></li>
+                            <li><a href="{% url 'dictionary:topic' topic.id %}">{{topic}}</a></li>
                             {% endfor %}
                             {% if request.user.is_staff %}
-                                <li><a href="{% url 'app:new-topic' %}" class='nav-link'>    
+                                <li><a href="{% url 'dictionary:new-topic' %}" class='nav-link'>    
                                     <i class="bi bi-plus-lg"></i>
                                     <span>new topic</span>
                                     </a>
@@ -305,7 +305,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link link-light" href="{% url 'app:ldmv' %}">
+                        <a class="nav-link link-light" href="{% url 'dictionary:ldmv' %}">
                             <i class="icon-badge menu-icon"></i>
                             <span class="nav-text">last day most voteds</span>
                         </a>
@@ -313,7 +313,7 @@
 
                     {% if request.user.is_staff %}
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:all-reports' %}">
+                            <a class="nav-link link-light" href="{% url 'dictionary:all-reports' %}">
                                 <i class="bi bi-flag"></i>
                                 <span class="nav-text">reports</span>
                             </a>
@@ -325,14 +325,14 @@
                     <hr/>
 
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:ai-bot' 1%}">
+                            <a class="nav-link link-light" href="{% url 'dictionary:ai-bot' 1%}">
                                 <i class="bi bi-flag"></i>
                                 <span class="nav-text">ai bot spammer</span>
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:spammer' %}">
+                            <a class="nav-link link-light" href="{% url 'dictionary:spammer' %}">
                                 <i class="bi bi-flag"></i>
                                 <span class="nav-text">spammer</span>
                             </a>
@@ -365,19 +365,19 @@
                     
                     {% if request.user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:follow' %}">                            
+                            <a class="nav-link link-light" href="{% url 'dictionary:follow' %}">                            
                                 <i class="bi bi-person-lines-fill"></i>
                                 <span class="nav-text">follow</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:followed-title' %}">                            
+                            <a class="nav-link link-light" href="{% url 'dictionary:followed-title' %}">                            
                                 <i class="bi bi-blockquote-left"></i>
                                 <span class="nav-text">followed titles</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link link-light" href="{% url 'app:fav' %}">
+                            <a class="nav-link link-light" href="{% url 'dictionary:fav' %}">
                                 <i class="bi bi-bookmark-heart"></i>
                                 <span class="nav-text">favorites</span>
                             </a>

@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.cache import cache
 
 
-from app.models import Author
+from dictionary.models import Author
 
 
 class Command(BaseCommand):

@@ -28,7 +28,7 @@ class SignupView(View):
                     author.username,
                     author.email
                 )
-                return redirect('app:index')
+                return redirect('dictionary:index')
             return render(request, 'signup_page.html', {'form': form})
         else:
             form = SignupForm(request.POST)
@@ -53,7 +53,7 @@ class LoginView(View):
                 next = request.GET.get("next")
                 if next:
                     return redirect(next)
-                return redirect('app:index')
+                return redirect('dictionary:index')
             else:
                 message = 'login error, username or password is incorrect.'
                 messages.warning(request, message)

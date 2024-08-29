@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from app.models import Entry, Title, Topic, Author
+from dictionary.models import Entry, Title, Topic, Author
 
 import os
 import random

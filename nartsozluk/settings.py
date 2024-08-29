@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'entry_log',
     'authentication',
     'log',
-    'app'
+    'dictionary',
 ]
 
 MIDDLEWARE = [

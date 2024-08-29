@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from app.models import Entry
+from dictionary.models import Entry
 
 
 class Command(BaseCommand):
