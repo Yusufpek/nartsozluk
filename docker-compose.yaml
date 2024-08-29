@@ -94,7 +94,7 @@ services:
     build: .
     command: celery -A nartsozluk beat -l info
     volumes:
-      - .:/code/:/usr/src/app/
+      - .:/code
     environment:
       - DEBUG=1
       - SECRET_KEY=${SECRET_KEY}
