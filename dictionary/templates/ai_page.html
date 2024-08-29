@@ -5,6 +5,27 @@
 
 {% block content %}
 
+<script>
+    
+</script>
+
+<div class="modal fade" id="processStartedModal" tabindex="-1" role="dialog" aria-labelledby="processStartedModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="processStartedModalLabel">Process Started</h5>
+            </div>
+            <div class="modal-body">
+                <span>The process starts in the background. You can monitor the task status or follow today's entries for updates.</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn login-form__btn new-title" id="closeModalButton">Start</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class='d-flex flex-row justify-content-around align-items-center'>
     <h5><a href="{% url 'dictionary:ai-bot' 0%}" id="follow-entries" class='follow-link {% if query == 0 %} link-warning {% else %} link-secondary {% endif %}'>New Title and Entries</a></h5>
     <h5><a href="{% url 'dictionary:ai-bot' 1%}"  id="follow-favs"  class='follow-link {% if query == 1 %} link-warning {% else %} link-secondary {% endif %}'>New Entries to Existing Title</a></h5>
@@ -20,11 +41,11 @@
                 <div class="form-input-content">
                     <div class="card login-form mb-0">
                         <div class="card-body pt-5">
-                            <h5>create titles :) {{title}}</h5>
-                            <form enctype="multipart/form-data" class="mt-5 mb-5 login-input" method="POST">
+                            <h5>create titles :)</h5>
+                            <form id="entryForm"  enctype="multipart/form-data" class="mt-5 mb-5 login-input" method="POST">
                                 {% csrf_token %}
-                                {{ form|crispy }}
-                                <button class="btn login-form__btn new-title">
+                                {{ form|crispy }} 
+                                <button class="btn login-form__btn new-title" id="createButton" type='button'>
                                     <span>create</span>
                                 </button>
                             </form>
@@ -42,5 +63,29 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    const createButton = document.getElementById('createButton');
+    const processStartedModal = new bootstrap.Modal(document.getElementById('processStartedModal'));
+    const form = document.getElementById('entryForm');
+    const closeModalButton = document.getElementById('closeModalButton');
+
+    createButton.addEventListener('click', function (event) {
+        // Prevent default form submission
+        event.preventDefault();
+
+        // Show the modal first
+        processStartedModal.show();
+    });
+
+    // Listen for the close button click event inside the modal
+    closeModalButton.addEventListener('click', function () {
+        // Hide the modal
+        processStartedModal.hide();
+        // Submit the form when the modal is closed
+        form.submit();
+    });
+</script>
 
 {% endblock %}
