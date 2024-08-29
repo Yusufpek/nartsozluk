@@ -10,5 +10,5 @@ class MonitorTasks(AuthMixin, BaseView):
         super().get(request)
         logs = Log.objects.all().order_by('-start_time')
         print(logs)
-        self.context['logs'] = logs
+        self.set_pagination(logs, request, 50)
         return render(request, 'monitor_tasks_page.html', self.context)
