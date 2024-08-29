@@ -138,6 +138,8 @@ GitHub.sublime-settings
 .history
 
 00*.py
+0001*.py
+harget.py
 
 /static/
 data/
