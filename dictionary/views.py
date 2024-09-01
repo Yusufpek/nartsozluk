@@ -604,7 +604,7 @@ class TopicView(BaseView):
             return redirect('dictionary:not-found')
 
         titles = Title.objects.filter(topic=topic)
-        self.context['topic'] = topic
+        self.set_pagination(titles, request)
         self.context['titles'] = titles
         return render(request, 'topic_title_page.html', self.context)
 
