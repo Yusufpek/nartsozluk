@@ -1,13 +1,13 @@
 {% if 'latest' in request.path %}
     {% if title.entries_count %}
-        <a href="{% url 'app:latest-title'  title.id %}" class='nav-link link-dark'>
+        <a href="{% url 'dictionary:latest-title'  title.id %}" class='nav-link link-dark'>
     {% else %}
-        <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
+        <a href="{% url 'dictionary:title' title.id %}" class='nav-link link-dark'>
     {% endif %}
 {% elif 'followed' in request.path %}
-    <a href="{% url 'app:followed-title-entries' title.id%}" class='nav-link link-dark'>
+    <a href="{% url 'dictionary:followed-title-entries' title.id%}" class='nav-link link-dark'>
 {% else %}
-    <a href="{% url 'app:title' title.id %}" class='nav-link link-dark'>
+    <a href="{% url 'dictionary:title' title.id %}" class='nav-link link-dark'>
 {% endif %}    
 <div class='mw-100 w-100'>
     <div class="card">

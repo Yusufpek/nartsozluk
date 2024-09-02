@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'entry_log',
     'authentication',
     'log',
-    'app'
+    'dictionary',
 ]
 
 MIDDLEWARE = [
@@ -218,6 +218,6 @@ CASSANDRA_FALLBACK_ORDER_BY_PYTHON = True
 CELERY_BEAT_SCHEDULE = {
     "get_log_summary_task": {
         "task": "entry_log.tasks.get_log_summary_task",
-        "schedule": crontab(hour="1"),
+        "schedule": crontab(minute=1),
     },
 }

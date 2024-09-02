@@ -6,9 +6,7 @@
 {% block content %}
 
 <div class='d-flex flex-row justify-content-around align-items-center'>
-    <h5><a href="{% url 'app:ai-bot' 0%}" id="follow-entries" class='follow-link {% if query == 0 %} link-warning {% else %} link-secondary {% endif %}'>New Title and Entries</a></h5>
-    <h5><a href="{% url 'app:ai-bot' 1%}"  id="follow-favs"  class='follow-link {% if query == 1 %} link-warning {% else %} link-secondary {% endif %}'>New Entries to Existing Title</a></h5>
-    <h5><a href="{% url 'app:ai-bot' 2%}"  id="follow-favs"  class='follow-link {% if query == 2 %} link-warning {% else %} link-secondary {% endif %}'>New Entries Like an Entry</a></h5>
+    <h5><a href="{% url 'dictionary:ai-bot' 0%}" id="follow-entries" class='follow-link link-warning'>Random Generated New Title and Entries</a></h5>
 </div>
 
 <hr/>
@@ -20,7 +18,7 @@
                 <div class="form-input-content">
                     <div class="card login-form mb-0">
                         <div class="card-body pt-5">
-                            <h5>create titles :) {{title}}</h5>
+                            <h5>create random generated titles :) </h5>
                             <form enctype="multipart/form-data" class="mt-5 mb-5 login-input" method="POST">
                                 {% csrf_token %}
                                 {{ form|crispy }}

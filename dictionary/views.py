@@ -21,10 +21,10 @@ from .forms import SettingsForm, EntryForm, TitleForm, ReportForm
 from .forms import AINewEntryForm, AINewTitleForm, AINewEntriesLikeAnEntry
 from .forms import NewTitleForm, NewTopicForm
 from .constants import ORDER_CHOICES
-from .ai_utils import AI, create_entry
 from .search import search_titles, search_authors, search_topics
 from .tasks import create_ai_title_task, create_random_entries_task
 from .tasks import create_new_entries_to_title_task
+from .tasks import create_entries_like_an_entry_task
 
 
 # user can choose random entry count max count is 50
@@ -42,7 +42,6 @@ class CacheHeaderMixin(object):
 
 class AuthMixin(UserPassesTestMixin):
     def test_func(self):
-        print("======HERE=======")
         return self.request.user.is_authenticated
 
 
@@ -86,7 +85,6 @@ class BaseView(View):
             fav_ids = AuthorsFavorites.objects.filter(
                 entry_id__in=uids, author=user
                 ).values_list('entry_id', flat=True)
-            print("favs", fav_ids)
             return base_manager.annotate(
                 is_fav=Case(
                     When(uid__in=fav_ids, then=Value(True)),
@@ -178,7 +176,7 @@ class TitleView(BaseView):
 
         title = Title.objects.filter(pk=title_id).first()
         if not title:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
 
         self.context['title'] = title
         title_entries = Entry.objects.filter(title=title)
@@ -273,9 +271,9 @@ class FollowedTitleEntries(AuthMixin, BaseView):
                 self.set_entries_for_title_page(entries, request)
                 self.context['before_entry_count'] = before_entry_count
                 return render(request, 'title_page.html', self.context)
-            return redirect('app:title', title_id)  # no entry show all
+            return redirect('dictionary:title', title_id)  # no entry show all
         else:
-            return render('app:not-found')
+            return render('dictionary:not-found')
 
 
 class FollowView(AuthMixin, BaseView):
@@ -385,7 +383,6 @@ class TodayView(BaseView):
                     self.context,
                     request=request)
                 return JsonResponse({'html': html, 'page': 2})
-        print('is_entries:', self.context['is_entries'])
         return render(request, 'today_page.html', self.context)
 
 
@@ -428,14 +425,11 @@ class ProfileView(BaseView):
     def get(self, request, author_id, query=0):
         super().get(request)
 
-        # distinct=True meaning is each unique row is only counted once.
-        print("here :)")
-
         author = Author.objects.filter(pk=author_id).first()
         if not author:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
 
-        print("db fetch user stats")
+        # fetch user stats
         author.entry_count = Entry.objects.filter(author=author).count()
         author.title_count = Title.objects.filter(owner=author).count()
         author.follower_count = FollowAuthor.objects.filter(
@@ -499,23 +493,23 @@ class FollowUserView(AuthMixin, BaseView):
         follow = Author.objects.filter(pk=follow_id).first()
         if follow:
             FollowAuthor(user=request.user, follow=follow).save()
-            return redirect('app:profile', follow_id)
+            return redirect('dictionary:profile', follow_id)
         else:
-            return redirect('app:index')
+            return redirect('dictionary:index')
 
 
 class UnFollowUserView(View):
     def get(self, request, follow_id):
         follow = Author.objects.filter(pk=follow_id).first()
         if not follow:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
 
         follow_author = FollowAuthor.objects.filter(
             user=request.user, follow=follow).first()
         if follow_author:
             follow_author.delete()
 
-        return redirect('app:profile', follow_id)
+        return redirect('dictionary:profile', follow_id)
 
 
 class VoteView(View):
@@ -583,7 +577,7 @@ class NewTitleView(AuthMixin, BaseView):
             entry = Entry(
                 content=entry_content, author=request.user, title=title)
             entry.save()
-            return redirect('app:index')
+            return redirect('dictionary:index')
         else:
             self.context['form'] = form
             return render(request, 'new_title_page.html', self.context)
@@ -601,10 +595,10 @@ class TopicView(BaseView):
         super().get(request)
         topic = Topic.objects.filter(pk=topic_id).first()
         if not topic:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
 
         titles = Title.objects.filter(topic=topic)
-        self.context['topic'] = topic
+        self.set_pagination(titles, request)
         self.context['titles'] = titles
         return render(request, 'topic_title_page.html', self.context)
 
@@ -615,7 +609,7 @@ class NewEntryView(AuthMixin, BaseView):
 
         title = Title.objects.filter(pk=title_id).first()
         if not title:
-            return redirect('app:index')
+            return redirect('dictionary:index')
 
         form = EntryForm()
         self.context['title'] = title
@@ -625,7 +619,7 @@ class NewEntryView(AuthMixin, BaseView):
     def post(self, request, title_id):
         title = Title.objects.filter(pk=title_id).first()  # check title
         if not title:
-            return redirect('app:index')
+            return redirect('dictionary:index')
 
         self.context['title'] = title
 
@@ -647,7 +641,7 @@ class NewEntryView(AuthMixin, BaseView):
                     content=entry_content,
                     author=request.user,
                     title=title).save()
-                return redirect('app:title', title_id)
+                return redirect('dictionary:title', title_id)
         return render(request, 'new_entry_page.html', self.context)
 
 
@@ -677,7 +671,7 @@ class EntryEditView(AuthMixin, BaseView):
 
         entry = Entry.objects.filter(uid=entry_id).first()
         if not entry:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
 
         if request.user != entry.author:
             return redirect('authentication:login')
@@ -695,11 +689,11 @@ class EntryEditView(AuthMixin, BaseView):
             entry = Entry.objects.filter(
                 uid=entry_id, author=request.user).first()
             if not entry:
-                return redirect('app:not-found')
+                return redirect('dictionary:not-found')
             else:
                 entry.content = entry_content
                 entry.save()
-                return redirect('app:title', entry.title.id)
+                return redirect('dictionary:title', entry.title.id)
         self.context['form'] = form
         self.context['title'] = entry.title
         return render(request, 'new_entry_page.html', self.context)
@@ -713,7 +707,7 @@ class EntryView(BaseView):
 
         entry = Entry.objects.filter(uid=entry_id)
         if not entry:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
 
         entry = self.get_is_fav_attr_entry(entry, request.user)
         entry = self.get_vote_counts_entry(entry)
@@ -744,7 +738,7 @@ class SettingsView(AuthMixin, BaseView):
             request.user.title_entry_count = title_entry_count
             request.user.random_entry_count = random_entry_count
             request.user.save()
-            return redirect('app:profile', request.user.id)
+            return redirect('dictionary:profile', request.user.id)
         self.context['form'] = form
         return render(request, 'settings_page.html', self.context)
 
@@ -806,7 +800,7 @@ class ReportView(AuthMixin, BaseView):
     def post(self, request, entry_id):
         entry = Entry.objects.filter(uid=entry_id).first()
         if not entry:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
         self.context['entry'] = entry
 
         form = ReportForm(request.POST)
@@ -816,7 +810,7 @@ class ReportView(AuthMixin, BaseView):
                             entry_id=entry.uid,
                             user=request.user)
             report.save()
-            return redirect('app:index')
+            return redirect('dictionary:index')
         else:
             self.context['form'] = form
             return render(request, 'add_report_page.html', self.context)
@@ -826,7 +820,7 @@ class ReportView(AuthMixin, BaseView):
 
         entry = Entry.objects.filter(uid=entry_id).first()
         if not entry:
-            return redirect('app:not-found')
+            return redirect('dictionary:not-found')
         self.context['entry'] = entry
 
         form = ReportForm()
@@ -896,14 +890,12 @@ class AIView(BaseView):
         if request.user.username != 'bot':
             return redirect('authentication:login')
 
-        ai = AI()
         if query == 0:  # new title and entries
             self.context['title'] = None
             form = AINewTitleForm(request.POST)
             if form.is_valid():
                 title_count = form.cleaned_data['title_count']
                 entry_count = form.cleaned_data['entry_per_title_count']
-                print('task')
                 create_ai_title_task.delay_on_commit(
                     title_count,
                     entry_count)
@@ -926,16 +918,13 @@ class AIView(BaseView):
                 entry_id = form.cleaned_data['entry_id']
                 form_title = form.cleaned_data['title_id']
                 entry_count = form.cleaned_data['entry_count']
-                entry = Entry.objects.filter(uid=entry_id).first()
-                title = Title.objects.filter(pk=form_title).first()
-                if title and entry:
-                    entry_res = ai.get_entries_like_an_entry(
-                        title, entry, entry_count)
-                    for res in entry_res:
-                        create_entry(res, request.user, title)
+                create_entries_like_an_entry_task(
+                    entry_id=entry_id,
+                    title_id=form_title,
+                    count=entry_count)
             else:
                 return render(request, 'ai_page.html', self.context)
-        return redirect('app:today')
+        return redirect('dictionary:today')
 
 
 class SpammerView(AuthMixin, BaseView):
@@ -956,16 +945,15 @@ class SpammerView(AuthMixin, BaseView):
         if form.is_valid():
             title_count = form.cleaned_data['title_count']
             entry_count = form.cleaned_data['entry_per_title_count']
-            print('task')
             res = create_random_entries_task.delay(
                 title_count,
                 entry_count)
             result = AsyncResult(res.id)
-            print("state:", result.state)
+            print("state:", result.state)  # get id
         else:
             self.context['form'] = form
             return render(request, 'ai_page.html', self.context)
-        return redirect('app:today')
+        return redirect('dictionary:today')
 
 
 class NewTopicView(AuthMixin, BaseView):
@@ -987,7 +975,7 @@ class NewTopicView(AuthMixin, BaseView):
             text = form.cleaned_data['text']
             topic = Topic(text=text, created_by=request.user)
             topic.save()
-            return redirect('app:index')
+            return redirect('dictionary:index')
         else:
             self.context['form'] = form
             return render(request, 'new_topic_page.html', self.context)

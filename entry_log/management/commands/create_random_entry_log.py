@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from app.models import Entry
+from dictionary.models import Entry
 from entry_log.models import EntryLog
 
 import random

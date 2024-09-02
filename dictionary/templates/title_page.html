@@ -13,7 +13,7 @@
             console.log(isFollow);
             console.log(titleId);
             $.ajax({
-                url: "{% url 'app:followed-title' %}",  // The URL of your upvote view
+                url: "{% url 'dictionary:followed-title' %}",  // The URL of your upvote view
                 method: 'POST',
                 data: {
                     'title_id': titleId,
@@ -42,13 +42,13 @@
 </script>
 
     <div class="d-flex flex-column pt-4 justify-content-center align-items-center">
-        <h2><a href="{% url 'app:title' title.id %}" class='link-secondary'>{{title|lower}}</a></h2>
+        <h2><a href="{% url 'dictionary:title' title.id %}" class='link-secondary'>{{title|lower}}</a></h2>
         {% if title.topic %}
-            <h6 class='mt-2'><a href="{% url 'app:topic' title.topic.id %}" class='link-warning'>{{title.topic}}</a></h6>
+            <h6 class='mt-2'><a href="{% url 'dictionary:topic' title.topic.id %}" class='link-warning'>{{title.topic}}</a></h6>
         {% endif %}
         <div class="d-flex flex-row align-items-center">
             {% if request.user.is_authenticated %}
-                <h6 class='mx-2 my-2'><a href="{% url 'app:new-entry' title.id %}" class='link-secondary'>Add Entry</a></h6>
+                <h6 class='mx-2 my-2'><a href="{% url 'dictionary:new-entry' title.id %}" class='link-secondary'>Add Entry</a></h6>
             {% endif %}
             <div class="btn-group">
                 <button id="btnGroupDrop1" type="button" class="btn link-secondary dropdown-toggle" data-toggle="dropdown">
@@ -62,7 +62,7 @@
                 </button>
                 <div class="dropdown-menu">
                     {% for choice in order_choices %}
-                    <a class="dropdown-item" href="{% url 'app:order' title.id forloop.counter %}">{{choice}}</a> 
+                    <a class="dropdown-item" href="{% url 'dictionary:order' title.id forloop.counter %}">{{choice}}</a> 
                     {% endfor %}
                 </div>
             </div>  
@@ -90,7 +90,7 @@
             {% endif %}
             {% if before_entry_count %}
                 <div class='d-flex justify-content-center'>
-                    <a href="{% url 'app:title' title.id %}" class="btn btn-outline-dark mt-5 w-75" role="button" aria-pressed="true">{{before_entry_count}} more entries</a>
+                    <a href="{% url 'dictionary:title' title.id %}" class="btn btn-outline-dark mt-5 w-75" role="button" aria-pressed="true">{{before_entry_count}} more entries</a>
                 </div>
             {% endif %}
             {% include 'components/entries.html' %}

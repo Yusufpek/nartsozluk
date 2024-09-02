@@ -1,6 +1,7 @@
 import os
 from celery import Celery
 from celery.signals import worker_process_init, beat_init
+from cassandra.policies import DCAwareRoundRobinPolicy
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.connection import (
     cluster as cql_cluster, session as cql_session)
@@ -14,7 +15,12 @@ def cassandra_init(**kwargs):
         cql_cluster.shutdown()
     if cql_session is not None:
         cql_session.shutdown()
-    connection.setup(hosts=['cassandra'], default_keyspace="cassandra_db")
+    connection.setup(
+        hosts=['cassandra'],
+        default_keyspace="cassandra_db",
+        protocol_version=5,
+        load_balancing_policy=DCAwareRoundRobinPolicy(local_dc='datacenter1')
+    )
 
 
 # Initialize worker context for both standard and periodic tasks.

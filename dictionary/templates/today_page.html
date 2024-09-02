@@ -15,7 +15,7 @@
             const query = $(this).attr('id') === 'today-entries' ? 1 : 2;
             console.log(query)
             $.ajax({
-                url: "{% url 'app:today' %}",
+                url: "{% url 'dictionary:today' %}",
                 method: 'GET',
                 data: {'query': query},
                 success: function(response) {

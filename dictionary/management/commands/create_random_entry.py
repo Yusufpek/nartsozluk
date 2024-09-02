@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from app.models import Entry, Title, Topic, Author
+from dictionary.models import Entry, Title, Topic, Author
 
 import os
 import random
@@ -19,12 +19,13 @@ class Command(BaseCommand):
         with open(file_path, 'r') as file:
             words = file.readlines()
 
+        entries = []
         for i in range(count):
             word_count = random.randint(1, 5)
             random.shuffle(words)
             title_content = ''
-            for i in range(word_count):
-                title_content += (words[i].replace('\n', ' '))
+            for m in range(word_count):
+                title_content += (words[m].replace('\n', ' '))
             topic = Topic.objects.filter(text='other').first()
             title = Title(text=title_content, topic=topic, owner=user)
             title.save()
@@ -38,11 +39,15 @@ class Command(BaseCommand):
                     content=entry_content,
                     author=user,
                     title=title)
-                entry.save()
+                entries.append(entry)
                 self.stdout.write(
                     self.style.SUCCESS(
-                        'created entry id:{id}, text: {text}'.format(
-                            id=entry.id, text=entry.content)))
+                        'entry index:{ind}, text: {text} added to list'.format(
+                            ind=i*entry_count + k,
+                            text=entry.content)))
+
+        Entry.objects.bulk_create(entries)
+        self.stdout.write(self.style.SUCCESS('Entry bulk created completed'))
 
     def handle(self, *args, **options):
         count = options["count"][0]

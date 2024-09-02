@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from app.views import AuthMixin, BaseView
+from dictionary.views import AuthMixin, BaseView
 from .models import EntryLog, Summary
 
 

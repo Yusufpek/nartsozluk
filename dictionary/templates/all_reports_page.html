@@ -58,7 +58,7 @@
             const query = $('#confirmDeleteModal').data('query');
             console.log(query);
             $.ajax({
-                url: "{% url 'app:report-delete' %}",  // The URL of your delete view
+                url: "{% url 'dictionary:report-delete' %}",  // The URL of your delete view
                 method: 'POST',
                 data: {
                     'report_id': reportId,

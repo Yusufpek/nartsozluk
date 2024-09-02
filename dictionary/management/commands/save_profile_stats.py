@@ -2,8 +2,8 @@ from django.core.management.base import BaseCommand
 from django.core.cache import cache
 
 
-from app.models import Author, Entry, Title, Vote
-from app.models import FollowAuthor
+from dictionary.models import Author, Entry, Title, Vote
+from dictionary.models import FollowAuthor
 
 
 class Command(BaseCommand):
