@@ -70,6 +70,9 @@ def create_ai_title_task(title_count, entry_count):
 
             except Exception as e:
                 print("error while creating: " + str(e))
+                if str(e).__contains__('400'):
+                    log.complete_task_error("API KEY INVALID")
+                    return "API KEY INVALID"
         log.complete_task("Proccess done!")
         return "Proccess done!"
     except Exception as e:
