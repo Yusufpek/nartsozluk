@@ -42,7 +42,6 @@ class CacheHeaderMixin(object):
 
 class AuthMixin(UserPassesTestMixin):
     def test_func(self):
-        print("======HERE=======")
         return self.request.user.is_authenticated
 
 
@@ -86,7 +85,6 @@ class BaseView(View):
             fav_ids = AuthorsFavorites.objects.filter(
                 entry_id__in=uids, author=user
                 ).values_list('entry_id', flat=True)
-            print("favs", fav_ids)
             return base_manager.annotate(
                 is_fav=Case(
                     When(uid__in=fav_ids, then=Value(True)),
@@ -385,7 +383,6 @@ class TodayView(BaseView):
                     self.context,
                     request=request)
                 return JsonResponse({'html': html, 'page': 2})
-        print('is_entries:', self.context['is_entries'])
         return render(request, 'today_page.html', self.context)
 
 
@@ -428,14 +425,11 @@ class ProfileView(BaseView):
     def get(self, request, author_id, query=0):
         super().get(request)
 
-        # distinct=True meaning is each unique row is only counted once.
-        print("here :)")
-
         author = Author.objects.filter(pk=author_id).first()
         if not author:
             return redirect('dictionary:not-found')
 
-        print("db fetch user stats")
+        # fetch user stats
         author.entry_count = Entry.objects.filter(author=author).count()
         author.title_count = Title.objects.filter(owner=author).count()
         author.follower_count = FollowAuthor.objects.filter(
@@ -902,7 +896,6 @@ class AIView(BaseView):
             if form.is_valid():
                 title_count = form.cleaned_data['title_count']
                 entry_count = form.cleaned_data['entry_per_title_count']
-                print('task')
                 create_ai_title_task.delay_on_commit(
                     title_count,
                     entry_count)
@@ -952,12 +945,11 @@ class SpammerView(AuthMixin, BaseView):
         if form.is_valid():
             title_count = form.cleaned_data['title_count']
             entry_count = form.cleaned_data['entry_per_title_count']
-            print('task')
             res = create_random_entries_task.delay(
                 title_count,
                 entry_count)
             result = AsyncResult(res.id)
-            print("state:", result.state)
+            print("state:", result.state)  # get id
         else:
             self.context['form'] = form
             return render(request, 'ai_page.html', self.context)
